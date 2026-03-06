@@ -1,0 +1,65 @@
+OVDF v1.1
+FlyBoxEffect.UniTaskBoxFlyEffect, Assembly-CSharp
+MetaGuid:28df1c8ed4e52aa4d823ae46477948cd
+
+# $C3PdcwR2RvBbBKQtxy11Si
+Position: $root:0
++ [Sirenix.OdinInspector.TitleGroupAttribute]
+	GroupName = "Settings"
+	HorizontalLine = True
+	BoldTitle = True
+	Indent = False
+	HideWhenChildrenAreInvisible = True
+	AnimateVisibility = True
+
+# $2UqmgdB5yBb8HtYDuBtSyo
+Position: $root:1
++ [Sirenix.OdinInspector.FoldoutGroupAttribute]
+	GroupName = "References"
+
+# _boxPrefab
+Position: $2UqmgdB5yBb8HtYDuBtSyo:2
+
+# _spawnDelay
+Position: $C3PdcwR2RvBbBKQtxy11Si:2
+
+# _centerOffset
+Position: $C3PdcwR2RvBbBKQtxy11Si:0
+
+# _spawnRadius
+Position: $C3PdcwR2RvBbBKQtxy11Si:1
++ [UnityEngine.RangeAttribute]
+	min = 2
+	max = 5
+
+# _depthOffset
+Position: $C3PdcwR2RvBbBKQtxy11Si:3
+
+# _loadingTable
+Position: $2UqmgdB5yBb8HtYDuBtSyo:0
+
+# _transform
+Position: $2UqmgdB5yBb8HtYDuBtSyo:1
+
+# StartEffect()
++ [Sirenix.OdinInspector.ButtonAttribute]
+	Style = FoldoutButton
+	Icon = Play
+	buttonIconAlignment = RightOfText
+	HasDefinedButtonIconAlignment = True
+	buttonHeight = 25
+	HasDefinedButtonHeight = True
+	stretch = True
+	HasDefinedStretch = True
+	Expanded = False
+	DisplayParameters = False
+	DirtyOnClick = False
+	drawResult = False
+	drawResultIsSet = True
+
+# StopEffect()
++ [Sirenix.OdinInspector.ButtonAttribute]
+	DisplayParameters = False
+	DirtyOnClick = False
+	stretch = True
+	HasDefinedStretch = True

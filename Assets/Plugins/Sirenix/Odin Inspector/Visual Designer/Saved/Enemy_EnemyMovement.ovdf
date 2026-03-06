@@ -1,0 +1,17 @@
+OVDF v1.1
+Enemy.EnemyMovement, Assembly-CSharp
+MetaGuid:c697f3a77b91a5a43babc90e1122222c
+
+# _moveDistance
++ [Sirenix.OdinInspector.MinMaxSliderAttribute]
+	MinValue = 1
+	MaxValue = 5
+	MinValueGetter = ""
+	MaxValueGetter = ""
+	ShowFields = True
+
+# _idleTime
++ [Sirenix.OdinInspector.MinMaxSliderAttribute]
+	MaxValue = 10
+	MinValueGetter = ""
+	ShowFields = True
