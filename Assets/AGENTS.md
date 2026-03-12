@@ -7,21 +7,19 @@ This document provides guidelines for agentic coding agents operating in this Un
 ## 1. Build, Test, and Run Commands
 
 ### Unity Editor
-- Open the project in Unity Hub or via `Unity -projectPath <path>`
+- Open project in Unity Hub or via `Unity -projectPath <path>`
 - Build: `File > Build Settings > Build` (Ctrl+Shift+B)
-- Play: `File > Build And Run` (Ctrl+B)
+- Play: Press Play button in Editor
 
-### Running Tests
-Tests use Unity's Test Runner (NUnit framework).
+### Running Tests (Unity Test Runner - NUnit)
 
 **Via Editor:**
 1. Open `Window > General > Test Runner`
-2. Click "Run All" or select specific tests
-3. For a single test, double-click the test name
+2. Click "Run All" or double-click specific test
 
 **Via Command Line:**
 ```bash
-Unity -projectPath "<path>" -runTests -testResults "<results.xml>" -testPlatform playmode
+Unity -projectPath "<path>" -runTests -testResults "results.xml" -testPlatform playmode
 ```
 
 **Single Test via Command Line:**
@@ -29,307 +27,227 @@ Unity -projectPath "<path>" -runTests -testResults "<results.xml>" -testPlatform
 Unity -projectPath "<path>" -runTests -testFilter "TestMethodName" -testResults "results.xml"
 ```
 
+**Single Test (specific class):**
+```bash
+Unity -projectPath "<path>" -runTests -testFilter "Namespace.ClassName.TestMethodName" -testResults "results.xml"
+```
+
 ### Building
 - **Windows**: `File > Build Settings > Build` (outputs .exe)
 - **WebGL**: Switch platform to WebGL, then build
-- **Android/iOS**: Switch platform, then build (requires SDK setup)
 
 ---
 
 ## 2. Code Style Guidelines
 
-### General Principles
-- Write clean, readable C# code following Unity best practices
-- Avoid premature optimization
-- Use meaningful names for all identifiers
-- Avoid unnecessary code and methods—keep implementations simple and straightforward. Only add code when truly needed for the current task. Don't add "nice to have" methods or abstractions that aren't required yet.
-
 ### Naming Conventions
 | Element | Convention | Example |
 |---------|------------|---------|
-| Namespaces | PascalCase | `FlyBoxEffect`, `VHierarchy` |
-| Classes/Structs | PascalCase | `FlyingBox`, `SimpleRotator` |
-| Public Methods | PascalCase | `SetActive()`, `LaunchBox()` |
-| Private Fields | _camelCase | `_boxPrefab`, `_transform` |
-| Properties | PascalCase | `IsActive`, `Transform` |
-| Parameters | camelCase | `newActiveState`, `flyDistance` |
-| Constants | PascalCase | `MaxBoxes`, `DefaultSpeed` |
-| Interfaces | IPascalCase | `IPoolable` |
+| Namespaces | PascalCase | `Player`, `Enemy`, `TimeControll` |
+| Classes/Structs | PascalCase | `PlayerMovement`, `Enemy` |
+| Public Methods | PascalCase | `SetActive()`, `TakeDamage()` |
+| Private Fields | _camelCase | `_rb`, `_playerVisual` |
+| Properties | PascalCase | `IsActive`, `Health` |
+| Parameters | camelCase | `newActiveState`, `damageAmount` |
+| Constants | PascalCase | `MaxSpeed`, `DefaultDelay` |
+| Interfaces | IPascalCase | `ITimeControllable`, `IDamageable` |
 
 ### File Organization
 ```csharp
-using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using Cysharp.Threading.Tasks;
+using Zenject;
+using Player;
+using R3;
 
-// Namespace
-namespace DungeonExplorer.Player
+namespace Player
 {
-    public class PlayerCore : MonoBehaviour
+    [RequireComponent(typeof(Rigidbody2D))]
+    public class PlayerMovement : MonoBehaviour
     {
-        // Properties (serialized backing field pattern)
-        [field: SerializeField] public Transform Transform { get; private set; }
+        [Header("Movement Settings")]
+        [SerializeField] private float _initialSpeed = 10f;
+
+        [Header("References")]
+        [SerializeField] private Rigidbody2D _rb;
+
+        private GameInput _gameInput;
+        private Vector2 _currentDirection;
+
+        private void OnEnable() { }
+        private void Update() { }
         
-        // Private fields
-        [SerializeField] private CharacterController _characterController;
-        
-        // Public properties
-        public bool IsActive { get; private set; }
-        
-        // Public methods
-        public void Initialize() { }
-        
-        // Private methods
-        private void OnDestroy() { }
+        public void ResetSpeed() { }
     }
 }
 ```
 
 ### Using Statements
-- Place `using` statements at the top, grouped: System, Unity, Third-party
-- Use aliases to avoid conflicts: `using Random = UnityEngine.Random;`
-- Use static imports for frequently used utilities:
-  ```csharp
-  using static VHierarchy.Libs.VUtils;
-  using static VHierarchy.VHierarchyData;
-  ```
+- Group: System, Unity, Third-party (Zenject, R3, UniTask)
+- Order alphabetically within groups
 
 ### Serialization
-- Use `[SerializeField]` for private fields that need Unity serialization
-- Use `[field: SerializeField]` for properties with private backing fields
-- Use `[SerializeField, Range(0, 10)]` for slider fields
+- `[SerializeField]` for private fields needing Unity serialization
+- `[field: SerializeField]` for properties with private backing fields
+- `[SerializeField, Range(0, 10)]` for slider fields
+- Use `[Header("Section")]` to group fields in Inspector
+
+### Component Dependencies
+```csharp
+[RequireComponent(typeof(Rigidbody2D))]
+public class PlayerMovement : MonoBehaviour
+{
+    [SerializeField] private Rigidbody2D _rb;
+
+    private void Awake()
+    {
+        _rb = GetComponent<Rigidbody2D>();
+    }
+}
+```
 
 ### Properties
 ```csharp
-// Preferred for serialized properties
-[field: SerializeField] public Transform Transform { get; private set; }
+// Serialized backing field pattern
+[field: SerializeField] public PlayerHealth Health { get; private set; }
 
-// Preferred for computed properties
+// Computed properties
 public Vector3 Position => Transform.localPosition;
 ```
 
-### Component Dependencies
-When a service requires a Unity component, reference it through Inspector and use OnValidate for auto-assignment:
+---
 
-```csharp
-public class PlayerCore : MonoBehaviour, IPlayerCore
-{
-    [Header("Required Components")]
-    [SerializeField] private CharacterController _characterController;
+## 3. Anti-Overengineering Principles
 
-    private void OnValidate()
-    {
-        if (_characterController == null)
-            _characterController = GetComponent<CharacterController>();
-    }
-}
-```
-
-**Pattern:**
-- Serialize required components with `[SerializeField]`
-- Use `OnValidate()` to auto-assign from same GameObject
-- Log error in Start() if required component is missing
-- This makes dependencies visible in Inspector
-
-### Async Code
-- Use `UniTask` (Unity-specific async/await library)
-- Use `UniTaskVoid` for fire-and-forget operations
-- Use `CancellationTokenSource` for cancellation support
-
-```csharp
-public async UniTaskVoid StartEffect()
-{
-    _cancelTokenSource = new CancellationTokenSource();
-    while (_cancelTokenSource.IsCancellationRequested == false)
-    {
-        await UniTask.Delay(TimeSpan.FromSeconds(_spawnDelay));
-    }
-}
-```
-
-### Error Handling
-- Use try-catch for potentially failing operations
-- Log errors appropriately: `Debug.LogError()`, `Debug.LogWarning()`
-- Handle null checks with null-conditional operators: `?.`
-
-### Unity-Specific Patterns
-- Use `[ContextMenu("Name")]` for debug/testing methods
-- Use `[ExecuteInEditMode]` for editor-only behavior
-- Use `[RequireComponent(typeof(Collider))]` for component dependencies
-- Implement `IPoolable` for object pooling patterns
+- **Don't create interfaces** unless you have 3+ implementations
+- **Don't create abstractions** "just in case" — only when needed
+- **Prefer simple, readable code** over clever architecture
+- Only add code truly needed for the current task
+- When in doubt, ask the user
 
 ---
 
-## 3. Testing Conventions
+## 4. Async Code (UniTask)
+
+```csharp
+private CancellationTokenSource _cancellationTokenSource;
+
+private async void StartBehavior()
+{
+    _cancellationTokenSource = new CancellationTokenSource();
+    while (!_cancellationTokenSource.IsCancellationRequested)
+    {
+        await UniTask.Yield(PlayerLoopTiming.Update);
+    }
+}
+
+private void OnDestroy()
+{
+    _cancellationTokenSource?.Cancel();
+    _cancellationTokenSource?.Dispose();
+}
+```
+
+- Use `UniTask` for async/await in Unity
+- Use `UniTaskVoid` for fire-and-forget
+- Always dispose `CancellationTokenSource` in `OnDestroy`
+
+---
+
+## 5. Dependency Injection (Zenject)
+
+```csharp
+[Inject] private TimeController _timeController;
+
+[Inject]
+public void Construct(TimeController timeController)
+{
+    _timeController = timeController;
+}
+```
+
+- Use `[Inject]` for field injection
+- Use `[Inject]` on constructor-like methods for method injection
+
+---
+
+## 6. Error Handling
+
+- Use try-catch for potentially failing operations
+- Log errors: `Debug.LogError()`, `Debug.LogWarning()`
+- Null checks: Use null-conditional operators `?.`
+- In `Start()`, log error if required component is missing
+
+---
+
+## 7. Testing Conventions
 
 ### NUnit Framework
-Tests use NUnit (Unity's built-in testing framework).
-
-### Test Structure
 ```csharp
-class TreeModelTests
+[Test]
+public static void TestMethodName()
 {
-    [Test]
-    public static void TestTreeModelCanAddElements()
-    {
-        // Arrange
-        var root = new TreeElement { TreeName = "Root", Depth = -1 };
-        
-        // Act
-        model.AddElement(newElement, root, 0);
-        
-        // Assert
-        Assert.AreEqual(expected, actual, "Message on failure");
-    }
+    Assert.AreEqual(expected, actual, "Message on failure");
 }
 ```
 
-### Running Tests
-- Place tests in `Editor/` folder for editor tests
-- Place tests in test assemblies (.asmdef with test framework reference)
-- Use `[UnityTest]` for tests that need PlayMode (yield return null)
+- Place tests in `Editor/` folder or test assemblies
+- Use `[UnityTest]` for PlayMode tests (yield return null)
 
 ---
 
-## 4. Project Structure
+## 8. Project Structure
 
 ```
 Assets/
-├── _Core/                    # Your gameplay code goes here
+├── _Core/                    # Your gameplay code
 │   ├── Scripts/
+│   │   ├── Player/
+│   │   ├── Enemy/
+│   │   └── Time Manager/
 │   ├── Scenes/
 │   └── Settings/
-├── Plugins/                  # Third-party plugins (Sirenix, etc.)
-├── ThirdParty/               # Third-party assets
-├── AssetInventory/           # Asset management tool
-├── vHierarchy/               # Hierarchy enhancement
-├── vFavorites/                # Favorites system
-└── VolumetricLightBeam/      # VFX library
+├── Plugins/                  # Zenject, R3, etc.
+└── Assets/                   # Third-party assets
 ```
 
 ---
 
-## 5. Key Dependencies
+## 9. Key Dependencies
 
 | Package | Purpose |
 |---------|---------|
-| Unity 6000.3.10f1+ | Game engine (LTS version) |
-| Universal Render Pipeline (URP) | Rendering pipeline |
-| New Input System | Player input handling |
-| UniTask | Async/await for asynchronous operations |
-| R3 | Reactive programming (events, streams) |
-| Addressables | Async asset loading and management |
-| DOTween | Animation and tweening |
-| Cinemachine 3.x | Camera system |
-| Sirenix.OdinInspector | Enhanced inspector |
-
-### Cinemachine 3.x Usage
-For Unity 6000+, use **Cinemachine 3.x** (not the deprecated 2.x):
-- **Namespace**: `Unity.Cinemachine` (not `Cinemachine`)
-- **FreeLook**: Use `CinemachineCamera` component with appropriate behaviors
-- **Input**: Use `CinemachineInputProvider` component to connect New Input System
-
-Example setup:
-```csharp
-using Unity.Cinemachine;
-
-CinemachineCamera cineCamera = cameraObj.AddComponent<CinemachineCamera>();
-cineCamera.FollowTarget = playerObj.transform;
-cineCamera.LookAtTarget = playerObj.transform;
-
-CinemachineInputProvider inputProvider = cameraObj.AddComponent<CinemachineInputProvider>();
-inputProvider.XYAxis = "Look"; // Input action name
-```
-
-### Player System Architecture
-The player system uses a **Service-Oriented Architecture** with a **Service Locator** pattern.
-
-#### Core Concepts
-- **Services**: Each player system (movement, combat, stats, inventory) is a separate service
-- **Interfaces**: All services expose via interfaces (`IPlayerMovementService`, `IPlayerStatsService`, etc.)
-- **Service Locator**: `PlayerCore` holds references to all services via interfaces
-- **Event Bus**: R3-based events for output-only communication (Player → External)
-
-#### Communication Patterns
-| Direction | Mechanism | Example |
-|----------|-----------|---------|
-| External → Player | Direct service calls | `playerCore.GetService<IPlayerStatsService>().TakeDamage(10)` |
-| Player → External | Event Bus (R3) | `EventBus.Publish(new PlayerDiedEvent())` |
-
-#### Directory Structure
-```
-Assets/_Core/Scripts/Player/
-├── Core/
-│   ├── IPlayerCore.cs           # Interface for PlayerCore
-│   ├── PlayerCore.cs            # Service locator, holds all service refs
-├── Services/
-│   ├── IPlayerService.cs       # Base interface
-│   ├── IPlayerInputService.cs  # Interface
-│   ├── PlayerInputService.cs   # Wraps GameInput
-│   ├── IPlayerMovementService.cs
-│   ├── PlayerMovementService.cs
-│   ├── IPlayerStatsService.cs
-│   ├── PlayerStatsService.cs
-│   └── IPlayerCameraService.cs
-│   ├── PlayerCameraService.cs
-├── Configs/
-│   ├── PlayerProfile.cs        # Main profile aggregating all configs
-│   ├── PlayerMovementConfig.cs
-│   └── PlayerStatsConfig.cs
-├── Status/
-│   └── StatusData.cs           # StatusType, StatusDurationType, PlayerStatus
-├── Events/
-│   ├── PlayerEvents.cs         # All player-related events
-│   └── EventBus.cs            # R3-based event bus
-└── UI/
-    └── PlayerHUD.cs            # HUD display
-```
-
-#### Creating New Services
-1. Create interface `IPlayerXxxService.cs`
-2. Create implementation `PlayerXxxService.cs`
-3. Register in `PlayerCore.InitializeServices()`
-4. Use `GetService<IPlayerXxxService>()` to access
-
-#### Event Usage
-- Only use EventBus for **output events** (Player → External)
-- Internal calls use direct service access
-- All events defined in `PlayerEvents.cs`
+| Unity 6000+ | Game engine |
+| URP | Rendering |
+| New Input System | Player input |
+| UniTask | Async/await |
+| R3 | Events |
+| Zenject | DI |
+| DOTween | Animation |
+| Cinemachine 3.x | Camera (use `Unity.Cinemachine` namespace) |
 
 ---
 
-## 6. Common Tasks
+## 10. Player System Architecture
 
-### Creating a New Script
-1. Create in appropriate `_Core/` subfolder
-2. Use PascalCase for filename (e.g., `BoxController.cs`)
-3. Follow naming conventions above
+- **Service Locator**: `PlayerCore` holds service references
+- **Services**: Implement interfaces (`IPlayerMovementService`, etc.)
+- **Events**: Use R3 `EventBus` for output-only communication
 
-### Adding a Component
 ```csharp
-[RequireComponent(typeof(Rigidbody))]
-public class BoxController : MonoBehaviour
-{
-    [SerializeField] private Rigidbody _rb;
-    
-    private void Awake()
-    {
-        _rb = GetComponent<Rigidbody>();
-    }
-}
-```
+// External → Player
+playerCore.GetService<IPlayerStatsService>().TakeDamage(10);
 
-### Creating a Prefab
-1. Create GameObject in scene
-2. Add all necessary components
-3. Drag to Project window to create prefab
-4. Use prefab for instantiating via code
+// Player → External
+EventBus.Publish(new PlayerDiedEvent());
+```
 
 ---
 
-## 7. Important Notes
+## 11. Important Notes
 
-- This is a Unity project - not Node.js/npm
-- No `npm run` or typical web build commands
+- This is a Unity project - no npm/node commands
 - All code is C# (Unity scripts)
 - Use Unity Inspector for configuration
-- Third-party assets are pre-installed in Assets/
+- No Cursor/Copilot rules exist in this project

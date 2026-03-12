@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TimeControll;
+using Zenject;
 
 namespace Player
 {
@@ -16,8 +18,12 @@ namespace Player
         [SerializeField] private PlayerVisual _playerVisual;
 
         private GameInput _gameInput;
+        private TimeController _timeController;
         private Vector2 _currentDirection = Vector2.right;
-        private float _currentSpeed;
+        private float _estimatedSpeed;
+
+        [Inject]
+        private void Construct(TimeController timeController) => _timeController = timeController;
 
         private void OnEnable()
         {
@@ -28,7 +34,6 @@ namespace Player
             _gameInput.Player.Move.performed += OnMovePerformed;
             
             _currentDirection = Vector2.up;
-            ResetSpeed();
         }
 
         private void OnDisable()
@@ -39,7 +44,7 @@ namespace Player
 
         private void Update()
         {
-            IncreaseSpeedOverTime();
+            IncreaseMoveAcceleration();
             Move();
         }
 
@@ -54,23 +59,20 @@ namespace Player
             }
         }
 
-        private void IncreaseSpeedOverTime()
+        private void IncreaseMoveAcceleration()
         {
-            if (_currentSpeed < _maxSpeed)
-            {
-                _currentSpeed += _speedIncreaseRate * Time.deltaTime;
-                _currentSpeed = Mathf.Min(_currentSpeed, _maxSpeed);
-            }
+            _estimatedSpeed += _speedIncreaseRate;
+            _estimatedSpeed = Mathf.Min(_estimatedSpeed, _maxSpeed);
         }
 
         private void Move()
         {
-            _rb.linearVelocity = _currentDirection * _currentSpeed;
+            _rb.linearVelocity = _currentDirection * _estimatedSpeed * _timeController.TimeScale;
         }
 
-        public void ResetSpeed()
+        public void ResetMoveAcceleration()
         {
-            _currentSpeed = _initialSpeed;
+            _estimatedSpeed = _initialSpeed;
         }
     }
 }

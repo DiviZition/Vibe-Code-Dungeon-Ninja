@@ -1,0 +1,38 @@
+OVDF v1.1
+TimeControll.TimeController, Assembly-CSharp
+MetaGuid:484423ddb01e97e40a5f3d665aaf18e1
+
+# StopTheTime(float)
+Visibility: Shown
++ [Sirenix.OdinInspector.ButtonAttribute]
+	Name = "STOP THE TIME"
+	Style = FoldoutButton
+	Icon = Alarm
+	stretch = True
+	HasDefinedStretch = True
+	Expanded = False
+	DisplayParameters = True
+	DirtyOnClick = False
+	drawResult = False
+	drawResultIsSet = True
+
+# ContinueTheTime(float)
+Visibility: Shown
++ [Sirenix.OdinInspector.ButtonAttribute]
+	Style = FoldoutButton
+	Name = "RESUME THE TIME"
+	Icon = AlarmFill
+	stretch = True
+	HasDefinedStretch = True
+	Expanded = False
+	DirtyOnClick = False
+
+# _targetTimeSpeed
++ [Sirenix.OdinInspector.PropertyRangeAttribute]
+	Max = 2
+
+# <TimeScale>k__BackingField
++ [Sirenix.OdinInspector.ReadOnlyAttribute]
+
+# <CurrentTime>k__BackingField
++ [Sirenix.OdinInspector.ReadOnlyAttribute]
