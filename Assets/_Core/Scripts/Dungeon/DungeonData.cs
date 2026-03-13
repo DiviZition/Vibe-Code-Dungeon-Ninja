@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Dungeon
 {
     public enum RoomType
@@ -37,12 +39,8 @@ namespace Dungeon
     public class Corridor
     {
         // Corridor position (top-left corner)
-        public int GridX { get; set; }
-        public int GridY { get; set; }
-
-        public int Width { get; set; }
-        public int Height { get; set; }
-
+        public Vector2 PointFrom { get; set; }
+        public Vector2 PointTo { get; set; }
         // Indices of rooms this corridor connects
         public int FromRoomIndex { get; set; }
         public int ToRoomIndex { get; set; }

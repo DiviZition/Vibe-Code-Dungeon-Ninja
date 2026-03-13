@@ -83,24 +83,11 @@ namespace Dungeon
         {
             Color corridorColor = Color.cyan;
 
-            Vector3 position = new Vector3(corridor.GridX, corridor.GridY, 0);
-            Vector3 size = new Vector3(corridor.Width, corridor.Height, 0);
+            Vector3 position = new Vector3(corridor.PointFrom.x, corridor.PointTo.y, 0);
 
             // Draw filled rectangle
-            Handles.color = corridorColor.WithAlpha(0.3f);
-            Handles.DrawAAConvexPolygon(
-                position,
-                position + new Vector3(size.x, 0, 0),
-                position + new Vector3(size.x, size.y, 0),
-                position + new Vector3(0, size.y, 0)
-            );
-
-            // Draw outline
-            Handles.color = corridorColor;
-            Handles.DrawWireCube(
-                position + size * 0.5f,
-                size
-            );
+            Handles.color = corridorColor.WithAlpha(0.5f);
+            Handles.DrawAAConvexPolygon(new Vector3[] { corridor.PointFrom, corridor.PointTo });
         }
 
         private Color GetRoomColor(RoomType type)
