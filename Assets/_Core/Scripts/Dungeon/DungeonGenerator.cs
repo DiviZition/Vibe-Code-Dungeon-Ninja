@@ -177,32 +177,29 @@ namespace Dungeon
                     bool isHorizontal = zoneA.x == zoneB.x;
                     bool isVertical = zoneA.y == zoneB.y;
 
-                    if (isAdjacent)
+                    int corridorHalfWidth = _corridorWidth / 2;
+
+                    if (isAdjacent && isHorizontal)
                     {
-                        int corridorWidth = 0, corridorHeight = 0;
-                        Vector2Int from = Vector2Int.zero;
-                        Vector2Int to = Vector2Int.zero;
-                        int corridorHalfWidth = _corridorWidth / 2;
-
-                        if (isHorizontal)
+                        //Imagine zones from lower to higher coordinates
+                        if (zoneA.x > zoneB.x)
                         {
-                            from = new Vector2Int(zoneA.x, zoneA.y - corridorHalfWidth);
-                            to = new Vector2Int(zoneB.x, zoneB.y + (_corridorWidth - corridorHalfWidth));
-                            Debug.Log($"Corridor from point:{from} to point:{to}");
+                            Vector2Int tempZonePos = zoneA;
+                            zoneA = zoneB;
+                            zoneB = tempZonePos;
                         }
-                        //else
-                        //{
-                        //    corridorX = zoneA.x - _corridorWidth / 2;
-                        //    corridorY = Mathf.Min(zoneA.y, zoneB.y) + _zoneSize / 2;
-                        //    corridorWidth = _corridorWidth;
-                        //    corridorHeight = _zoneSize + _corridorLength;
-                        //}
 
+                        Vector2 bottomLeft = zoneA;
+                        bottomLeft.x += _zoneSize / 2;
+                        bottomLeft.y -= corridorHalfWidth;
+                        Vector2 topRight;
+                        topRight.x = bottomLeft.x + _corridorLength + 1;
+                        topRight.y = bottomLeft.y + _corridorWidth;
 
                         var corridor = new Corridor
                         {
-                            PointFrom = from,
-                            PointTo = to,
+                            PointFrom = bottomLeft,
+                            PointTo = topRight,
                             FromRoomIndex = i,
                             ToRoomIndex = j
                         };

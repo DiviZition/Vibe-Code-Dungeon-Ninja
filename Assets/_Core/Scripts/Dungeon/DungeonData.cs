@@ -41,6 +41,10 @@ namespace Dungeon
         // Corridor position (top-left corner)
         public Vector2 PointFrom { get; set; }
         public Vector2 PointTo { get; set; }
+
+        public int CorridorWidth { get; set; }
+        public int CorridorLength { get; set; }
+        
         // Indices of rooms this corridor connects
         public int FromRoomIndex { get; set; }
         public int ToRoomIndex { get; set; }

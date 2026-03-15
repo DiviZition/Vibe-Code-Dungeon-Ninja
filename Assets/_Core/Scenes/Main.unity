@@ -14529,11 +14529,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Dungeon.DungeonGenerator
   _zoneSize: 10
-  _minRoomSize: 5
+  _minRoomSize: 2
   _zonesCount: 7
   _corridorWidth: 2
   _corridorLength: 1
-  _seed: 300
+  _seed: 295
   _regenerateOnValidate: 1
 --- !u!1 &1151520738
 GameObject:

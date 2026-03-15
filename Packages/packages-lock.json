@@ -29,6 +29,36 @@
       "dependencies": {},
       "hash": "c2af83c9d4f8cdaada9d4a0e94de2f195d8e1d01"
     },
+    "com.google.external-dependency-manager": {
+      "version": "file:../Assets/Packages/Firebase/com.google.external-dependency-manager-1.2.186.tgz",
+      "depth": 0,
+      "source": "local-tarball",
+      "dependencies": {}
+    },
+    "com.google.firebase.analytics": {
+      "version": "file:../Assets/Packages/Firebase/com.google.firebase.analytics-13.6.0.tgz",
+      "depth": 0,
+      "source": "local-tarball",
+      "dependencies": {
+        "com.google.firebase.app": "13.6.0"
+      }
+    },
+    "com.google.firebase.app": {
+      "version": "file:../Assets/Packages/Firebase/com.google.firebase.app-13.6.0.tgz",
+      "depth": 0,
+      "source": "local-tarball",
+      "dependencies": {
+        "com.google.external-dependency-manager": "1.2.186"
+      }
+    },
+    "com.google.firebase.firestore": {
+      "version": "file:../Assets/Packages/Firebase/com.google.firebase.firestore-13.6.0.tgz",
+      "depth": 0,
+      "source": "local-tarball",
+      "dependencies": {
+        "com.google.firebase.app": "13.6.0"
+      }
+    },
     "com.singularitygroup.hotreload": {
       "version": "file:com.singularitygroup.hotreload",
       "depth": 0,
