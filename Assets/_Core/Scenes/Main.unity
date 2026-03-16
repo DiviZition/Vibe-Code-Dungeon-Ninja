@@ -418,6 +418,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 306547967}
   - {fileID: 1406811734}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -435,7 +436,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Zenject::Zenject.SceneContext
   _scriptableObjectInstallers: []
   _monoInstallers:
-  - {fileID: 1406811735}
+  - {fileID: 306547966}
   _installerPrefabs: []
   _autoRun: 1
   OnPreInstall:
@@ -14300,6 +14301,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1730285400}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &306547965
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 306547967}
+  - component: {fileID: 306547966}
+  m_Layer: 0
+  m_Name: BootstrapOfDungeon
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &306547966
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 306547965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7e2e6adc0de93a44a8ce8a8a61d4366, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BootstrapOfDungeon
+--- !u!4 &306547967
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 306547965}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 76778645}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &478205851
 GameObject:
   m_ObjectHideFlags: 0
@@ -14827,12 +14872,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1406811733}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 484423ddb01e97e40a5f3d665aaf18e1, type: 3}
+  m_Script: {fileID: 11500000, guid: 8733e075389e02f4cb65f3e5bebf12b6, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TimeControll.TimeController
-  _defaultTimeChangeDuration: 0.25
-  <TimeScale>k__BackingField: 1
-  <CurrentTime>k__BackingField: 1
+  m_EditorClassIdentifier: Assembly-CSharp::TimeControll.TimeControllerViewer
+  CurrentTimeScale: 0
+  CurrentTime: 0
 --- !u!1 &1579087735
 GameObject:
   m_ObjectHideFlags: 0

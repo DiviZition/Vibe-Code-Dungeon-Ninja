@@ -1,0 +1,38 @@
+OVDF v1.1
+TimeControll.TimeControllerViewer, Assembly-CSharp
+MetaGuid:8733e075389e02f4cb65f3e5bebf12b6
+
+# _timeController
+Visibility: Hidden
+
+# CurrentTimeScale
+Visibility: Shown
++ [Sirenix.OdinInspector.ReadOnlyAttribute]
+
+# CurrentTime
+Visibility: Shown
++ [Sirenix.OdinInspector.ReadOnlyAttribute]
+
+# StopTime()
+Visibility: Shown
++ [Sirenix.OdinInspector.ButtonAttribute]
+	Icon = AlarmFill
+	Name = "STOP THE TIME"
+	Expanded = True
+	stretch = True
+	HasDefinedStretch = True
+	DirtyOnClick = False
+
+# ContinueTime()
+Visibility: Shown
++ [Sirenix.OdinInspector.ButtonAttribute]
+	Icon = Alarm
+	Name = "PLAY THE TIME"
+	stretch = True
+	HasDefinedStretch = True
+	Expanded = True
+	DirtyOnClick = False
+	Style = CompactBox
+
+# Contruct(TimeController)
+Visibility: Hidden

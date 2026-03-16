@@ -5,14 +5,14 @@ using System;
 using System.Collections.Concurrent;
 using UnityEngine;
 
-public static class FirebaseService
+public class FirebaseService : IDisposable
 {
-    private static ConcurrentQueue<Action> _eventsQueue;
+    private ConcurrentQueue<Action> _eventsQueue;
 
-    public static bool IsInitialized { get; private set; } = false;
-    private static UniTask _tryFireEventsTask;
+    public bool IsInitialized { get; private set; } = false;
+    private UniTask _tryFireEventsTask;
 
-    private static async UniTask TryFireEvents()
+    private async UniTask TryFireEvents()
     {
         if (IsInitialized == false && _tryFireEventsTask.Status.IsCompleted())
         {
@@ -28,15 +28,11 @@ public static class FirebaseService
         }
 
         while (_eventsQueue.Count > 0)
-        {
             if (_eventsQueue.TryDequeue(out var action) == true)
-            {
                 action?.Invoke();
-            }   
-        }
     }
 
-    public static void InvokeEvent(string name, params Parameter[] parameter)
+    public void FireEvent(string name, params Parameter[] parameter)
     {
         if (_eventsQueue == null)
             _eventsQueue = new ConcurrentQueue<Action>();
@@ -46,7 +42,7 @@ public static class FirebaseService
         _tryFireEventsTask = TryFireEvents();
     }
 
-    private static void DirectEventLog(string name, params Parameter[] parameter)
+    private void DirectEventLog(string name, params Parameter[] parameter)
     {
         Debug.Log($"Firebase event inoked: {name}");
         try
@@ -59,26 +55,8 @@ public static class FirebaseService
         }
     }
 
-    private static void DisposeOnExit()
+    public void Dispose()
     {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.playModeStateChanged += DisposeOnExit;
-        void DisposeOnExit(UnityEditor.PlayModeStateChange state)
-        {
-            if (state == UnityEditor.PlayModeStateChange.ExitingPlayMode)
-            {
-                UnityEditor.EditorApplication.playModeStateChanged -= DisposeOnExit;
-                Dispose();
-            }
-        }
-#endif
-        Application.quitting += Dispose;
-    }
-
-    public static void Dispose()
-    {
-        Application.quitting -= Dispose;
         _eventsQueue.Clear();
-        IsInitialized = false;
     }
 }

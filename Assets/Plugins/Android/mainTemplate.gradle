@@ -6,6 +6,7 @@ apply from: '../shared/common.gradle'
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 // Android Resolver Dependencies Start
+    implementation 'com.google.android.gms:play-services-ads:20.0.0' // Assets/GoogleMobileAds/Editor/GoogleMobileAdsDependencies.xml:7
     implementation 'com.google.android.gms:play-services-base:18.9.0' // Packages/com.google.firebase.app/Firebase/Editor/AppDependencies.xml:17
     implementation 'com.google.firebase:firebase-analytics:23.0.0' // Packages/com.google.firebase.analytics/Firebase/Editor/AnalyticsDependencies.xml:13
     implementation 'com.google.firebase:firebase-analytics-unity:13.6.0' // Packages/com.google.firebase.analytics/Firebase/Editor/AnalyticsDependencies.xml:18
@@ -20,11 +21,8 @@ dependencies {
 android {
   packaging {
       exclude ('/lib/armeabi/*' + '*')
-      exclude ('/lib/armeabi-v7a/*' + '*')
       exclude ('/lib/mips/*' + '*')
       exclude ('/lib/mips64/*' + '*')
-      exclude ('/lib/x86/*' + '*')
-      exclude ('/lib/x86_64/*' + '*')
   }
 }
 // Android Resolver Exclusions End

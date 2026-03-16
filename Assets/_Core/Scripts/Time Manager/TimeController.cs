@@ -1,64 +1,53 @@
+using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
-using System.Collections;
-using System.Collections.Generic;
+using System;
+using System.Threading;
 using UnityEngine;
 using Zenject;
 
 namespace TimeControll
 {
-    public class TimeController : MonoInstaller
+    public class TimeController : ITickable, IDisposable
     {
         [SerializeField] private float _defaultTimeChangeDuration;
-
-        private HashSet<ITimeControllable> _subscribers;
-        private Coroutine _switchTimeScaleRoutine;
+        private CancellationTokenSource _changeTimeSpeedCancelToken;
 
         [ReadOnly][field: SerializeField] public float TimeScale { get; private set; } = 1;
         [ReadOnly][field: SerializeField] public float CurrentTime {get; private set;}
         public float DeltaTime {get; private set;}
 
-        public override void InstallBindings()
+        public TimeController()
         {
-            Container.Bind<TimeController>().FromInstance(this).AsSingle();
-            ChangeTheTime(targetTimeScale: 1, timeChangeDuration: 0);
+            ChangeTimeScale(targetTimeScale: 1, timeChangeDuration: 0);
         }
 
-        private void Update()
-        {
-            UpdateSubscribers();
-        }
-
-        private void UpdateSubscribers()
+        public void Tick()
         {
             if (TimeScale == 0) return;
-
             DeltaTime = Time.deltaTime * TimeScale;
             CurrentTime += DeltaTime;
-
-            if (_subscribers == null || _subscribers.Count <= 0) return;
-            foreach (ITimeControllable item in _subscribers)
-            {
-                item?.UpdateByTime(DeltaTime);
-            }
         }
 
-        public void StopTheTime(float timeChangeDuration = -1) => ChangeTheTime(targetTimeScale: 0, timeChangeDuration);
-        public void ContinueTheTime(float timeChangeDuration = -1) => ChangeTheTime(targetTimeScale: 1, timeChangeDuration);
+        public void StopTheTime(float timeChangeDuration = -1) => ChangeTimeScale(targetTimeScale: 0, timeChangeDuration);
+        public void ContinueTheTime(float timeChangeDuration = -1) => ChangeTimeScale(targetTimeScale: 1, timeChangeDuration);
 
-        public void ChangeTheTime(float targetTimeScale, float timeChangeDuration = -1)
+        public void ChangeTimeScale(float targetTimeScale, float timeChangeDuration = -1)
         {
             timeChangeDuration = timeChangeDuration == -1 ? _defaultTimeChangeDuration : timeChangeDuration;
             if (timeChangeDuration == 0 || targetTimeScale == TimeScale)
             {
                 TimeScale = targetTimeScale;
+                if (TimeScale == 0)
+                    DeltaTime = 0;
                 return;
             }
 
-            StopAllCoroutines();
-            _switchTimeScaleRoutine = StartCoroutine(UpdateTimeSpeed(targetTimeScale, timeChangeDuration));
+            _changeTimeSpeedCancelToken?.Cancel();
+            _changeTimeSpeedCancelToken = new CancellationTokenSource();
+            UpdateTimeSpeed(targetTimeScale, timeChangeDuration, _changeTimeSpeedCancelToken.Token).Forget();
         }
 
-        private IEnumerator UpdateTimeSpeed(float targetTimeScale, float timeChangeDuration)
+        private async UniTaskVoid UpdateTimeSpeed(float targetTimeScale, float timeChangeDuration, CancellationToken token)
         {
             float progress = 0;
             float startTimeScale = TimeScale;
@@ -66,23 +55,16 @@ namespace TimeControll
             {
                 progress += Time.deltaTime / timeChangeDuration;
                 TimeScale = Mathf.Lerp(startTimeScale, targetTimeScale, progress);
-                yield return null;
+                await UniTask.Yield(PlayerLoopTiming.Update);
+                if (token.IsCancellationRequested == true)
+                    return;
             }
         }
 
-        public void AddSubscriber(ITimeControllable subscriber)
+        public void Dispose()
         {
-            if (_subscribers == null)
-                _subscribers = new HashSet<ITimeControllable>(8);
-
-            if (_subscribers.Add(subscriber) == false)
-                Debug.LogError($"Can't remove the subscriber from TimeController: {subscriber}");
-        }
-
-        public void RemoveSubscriber(ITimeControllable subscriber)
-        {
-            if(_subscribers?.Remove(subscriber) == false)
-                Debug.LogError($"Can't remove the subscriber from TimeController: {subscriber}");
+            _changeTimeSpeedCancelToken?.Cancel();
+            _changeTimeSpeedCancelToken?.Dispose();
         }
     }
 }

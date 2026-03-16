@@ -1,5 +1,3 @@
-using TimeControll;
-
 namespace StateMachine
 {
     public interface IStateBase
@@ -8,16 +6,8 @@ namespace StateMachine
         void Exit();
     }
 
-        public interface ISimpleState : IStateBase
+    public interface ISimpleState : IStateBase
     {
         void Update();
-    }
-
-    public interface ISimpleStateTimed : IStateBase, ITimeControllable
-    {
-    }
-
-    public interface ITaskStateTimed : IStateBase, ITimeControllable
-    {
     }
 }
