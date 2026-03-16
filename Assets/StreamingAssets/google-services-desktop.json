@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "797449290835",
+    "firebase_url": "https://dungeon-ninja-unstoppable-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "dungeon-ninja-unstoppable",
     "storage_bucket": "dungeon-ninja-unstoppable.firebasestorage.app"
   },
