@@ -15,6 +15,7 @@ namespace Dungeon
 
         [Header("Debug")]
         [SerializeField] private bool _regenerateOnValidate;
+        [SerializeField] private bool _debugLog;
 
         // Output - the generated dungeon data
         public DungeonData Data { get; private set; }
@@ -22,11 +23,13 @@ namespace Dungeon
 
         public void Generate()
         {
-            // Validate _minRoomSize
             if (_minRoomSize > OddZoneSize)
                 _minRoomSize = OddZoneSize;
 
             int seed = _seed == 0 ? Random.Range(0, int.MaxValue) : _seed;
+
+            if (_debugLog)
+                Debug.Log($"[Generator] Seed={seed}, ZoneSize={OddZoneSize}, Zones={_zonesCount}, CorridorWidth={_corridorWidth}, CorridorLength={_corridorLength}");
 
             var random = new System.Random(seed);
 
@@ -39,16 +42,31 @@ namespace Dungeon
                 Corridors = null
             };
 
-            // Phase 1: Generate zone skeleton via random walk
             var zonePositions = GenerateZonePositions(random);
 
-            // Phase 2: Place rooms in each zone
+            if (_debugLog)
+                Debug.Log($"[Generator] Generated {zonePositions.Count} zone positions");
+
             Data.Rooms = PlaceRoomsInZones(random, zonePositions);
 
-            // Phase 3: Generate corridors between adjacent zones
+            if (_debugLog)
+                Debug.Log($"[Generator] Generated {Data.Rooms.Length} rooms");
+
             Data.Corridors = GenerateCorridors(zonePositions);
 
-            // Phase 4: Determine boss room (farthest from start)
+            if (_debugLog)
+                Debug.Log($"[Generator] Generated {Data.Corridors.Length} corridors");
+
+            if (_debugLog)
+            {
+                for (int i = 0; i < Data.Rooms.Length; i++)
+                {
+                    var room = Data.Rooms[i];
+                    var corridors = room.ConnectedCorridorIndices != null ? string.Join(",", room.ConnectedCorridorIndices) : "none";
+                    Debug.Log($"  Room {i}: corridors=[{corridors}], type={room.Type}");
+                }
+            }
+
             DetermineBossRoom();
         }
 
@@ -139,7 +157,7 @@ namespace Dungeon
                     ZoneX = zone.x,
                     ZoneY = zone.y,
                     Type = RoomType.Normal,
-                    ConnectedRoomIndices = new int[0],
+                    ConnectedCorridorIndices = new int[0],
                     IsVisited = false,
                     IsCleared = false,
                     IsLocked = false
@@ -155,65 +173,253 @@ namespace Dungeon
         {
             var corridors = new List<Corridor>();
             var rooms = Data.Rooms;
+            int roomCount = rooms.Length;
 
-            if (rooms == null || rooms.Length == 0)
+            if (roomCount == 0)
                 return corridors.ToArray();
 
-            // Connect all adjacent zones
-            Debug.Log($"Distance between rooms: {OddZoneSize + _corridorLength}");
-            for (int i = 0; i < zonePositions.Count; i++)
+            var component = new int[roomCount];
+            for (int i = 0; i < roomCount; i++)
+                component[i] = i;
+
+            int expectedDistance = OddZoneSize + _corridorLength;
+
+            for (int i = 0; i < roomCount; i++)
             {
-                var zoneA = zonePositions[i];
-
-                for (int j = i + 1; j < zonePositions.Count; j++)
+                for (int j = i + 1; j < roomCount; j++)
                 {
-                    var zoneB = zonePositions[j];
+                    int dx = zonePositions[j].x - zonePositions[i].x;
+                    int dy = zonePositions[j].y - zonePositions[i].y;
 
-                    // Check if adjacent in zone coordinates
-                    int dx = Mathf.Abs(zoneA.x - zoneB.x);
-                    int dy = Mathf.Abs(zoneA.y - zoneB.y);
+                    bool isHorizontalAdjacent = dx == expectedDistance && dy == 0;
+                    bool isVerticalAdjacent = dx == 0 && dy == expectedDistance;
 
-                    bool isAdjacent = (dx == OddZoneSize + _corridorLength && dy == 0) || (dx == 0 && dy == OddZoneSize + _corridorLength);
-                    bool isHorizontal = zoneA.x == zoneB.x;
-                    bool isVertical = zoneA.y == zoneB.y;
-
-                    int corridorHalfWidth = _corridorWidth / 2;
-
-                    if (isAdjacent && isHorizontal)
+                    if (isHorizontalAdjacent || isVerticalAdjacent)
                     {
-                        //Imagine zones from lower to higher coordinates
-                        if (zoneA.x > zoneB.x)
+                        var corridor = CreateCorridor(i, j, zonePositions, rooms, isHorizontalAdjacent);
+                        if (corridor != null)
                         {
-                            Vector2Int tempZonePos = zoneA;
-                            zoneA = zoneB;
-                            zoneB = tempZonePos;
+                            corridors.Add(corridor);
+                            rooms[i].ConnectedCorridorIndices = AddToArray(rooms[i].ConnectedCorridorIndices, corridors.Count - 1);
+                            rooms[j].ConnectedCorridorIndices = AddToArray(rooms[j].ConnectedCorridorIndices, corridors.Count - 1);
+
+                            Union(component, i, j);
+
+                            if (_debugLog)
+                                Debug.Log($"  Corridor {corridors.Count - 1} ({(isHorizontalAdjacent ? "H" : "V")}): Room {i} -> Room {j}");
                         }
-
-                        Vector2 bottomLeft = zoneA;
-                        bottomLeft.x += _zoneSize / 2;
-                        bottomLeft.y -= corridorHalfWidth;
-                        Vector2 topRight;
-                        topRight.x = bottomLeft.x + _corridorLength + 1;
-                        topRight.y = bottomLeft.y + _corridorWidth;
-
-                        var corridor = new Corridor
-                        {
-                            PointFrom = bottomLeft,
-                            PointTo = topRight,
-                            FromRoomIndex = i,
-                            ToRoomIndex = j
-                        };
-
-                        corridors.Add(corridor);
-
-                        // Update room connections
-                        rooms[i].ConnectedRoomIndices = AddToArray(rooms[i].ConnectedRoomIndices, j);
-                        rooms[j].ConnectedRoomIndices = AddToArray(rooms[j].ConnectedRoomIndices, i);
                     }
                 }
             }
 
+            for (int i = 0; i < roomCount; i++)
+            {
+                if (rooms[i].ConnectedCorridorIndices == null || rooms[i].ConnectedCorridorIndices.Length == 0)
+                {
+                    if (_debugLog)
+                        Debug.Log($"  Room {i} has no corridors - finding fallback...");
+
+                    int nearest = -1;
+                    float minDist = float.MaxValue;
+                    for (int j = 0; j < roomCount; j++)
+                    {
+                        if (i == j) continue;
+                        float dist = Mathf.Abs(zonePositions[i].x - zonePositions[j].x) + Mathf.Abs(zonePositions[i].y - zonePositions[j].y);
+                        if (dist < minDist)
+                        {
+                            minDist = dist;
+                            nearest = j;
+                        }
+                    }
+                    if (nearest >= 0)
+                    {
+                        int dx = zonePositions[nearest].x - zonePositions[i].x;
+                        int dy = zonePositions[nearest].y - zonePositions[i].y;
+                        bool isHorizontal = Mathf.Abs(dx) > Mathf.Abs(dy);
+
+                        if (_debugLog)
+                            Debug.Log($"  Room {i} -> nearest Room {nearest}, dx={dx}, dy={dy}, horizontal={isHorizontal}");
+
+                        var corridor = CreateCorridor(i, nearest, zonePositions, rooms, isHorizontal);
+                        if (corridor != null)
+                        {
+                            corridors.Add(corridor);
+                            rooms[i].ConnectedCorridorIndices = AddToArray(rooms[i].ConnectedCorridorIndices, corridors.Count - 1);
+                            rooms[nearest].ConnectedCorridorIndices = AddToArray(rooms[nearest].ConnectedCorridorIndices, corridors.Count - 1);
+
+                            Union(component, i, nearest);
+
+                            if (_debugLog)
+                                Debug.Log($"  Fallback corridor {corridors.Count - 1}: Room {i} -> Room {nearest}");
+                        }
+                        else
+                        {
+                            Debug.LogError($"  FAILED to create fallback corridor for Room {i} -> Room {nearest}");
+                        }
+                    }
+                }
+            }
+
+            for (int c = 0; c < roomCount; c++)
+                component[c] = Find(component, c);
+
+            int rootComponent = Find(component, 0);
+            bool madeProgress = true;
+            int safetyLimit = 100;
+            int iterations = 0;
+
+            while (madeProgress && iterations < safetyLimit)
+            {
+                iterations++;
+                madeProgress = false;
+                rootComponent = Find(component, 0);
+
+                for (int i = 1; i < roomCount; i++)
+                {
+                    if (Find(component, i) != rootComponent)
+                    {
+                        if (_debugLog)
+                            Debug.Log($"  Room {i} disconnected - connecting...");
+
+                        int nearest = -1;
+                        float minDist = float.MaxValue;
+                        for (int j = 0; j < roomCount; j++)
+                        {
+                            if (j == i) continue;
+                            float dist = Mathf.Abs(zonePositions[i].x - zonePositions[j].x) + Mathf.Abs(zonePositions[i].y - zonePositions[j].y);
+                            if (dist < minDist)
+                            {
+                                minDist = dist;
+                                nearest = j;
+                            }
+                        }
+                        if (nearest >= 0)
+                        {
+                            int dx = zonePositions[nearest].x - zonePositions[i].x;
+                            int dy = zonePositions[nearest].y - zonePositions[i].y;
+                            bool isHorizontal = Mathf.Abs(dx) > Mathf.Abs(dy);
+
+                            var corridor = CreateCorridor(i, nearest, zonePositions, rooms, isHorizontal);
+                            if (corridor != null)
+                            {
+                                corridors.Add(corridor);
+                                rooms[i].ConnectedCorridorIndices = AddToArray(rooms[i].ConnectedCorridorIndices, corridors.Count - 1);
+                                rooms[nearest].ConnectedCorridorIndices = AddToArray(rooms[nearest].ConnectedCorridorIndices, corridors.Count - 1);
+
+                                Union(component, i, nearest);
+                                madeProgress = true;
+
+                                if (_debugLog)
+                                    Debug.Log($"  Bridge corridor: Room {i} -> Room {nearest}");
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+            if (iterations >= safetyLimit)
+                Debug.LogError("Dungeon generation: hit safety limit in connectivity check!");
+
             return corridors.ToArray();
+        }
+
+        private int Find(int[] parent, int x)
+        {
+            if (parent[x] != x)
+                parent[x] = Find(parent, parent[x]);
+            return parent[x];
+        }
+
+        private void Union(int[] parent, int x, int y)
+        {
+            int px = Find(parent, x);
+            int py = Find(parent, y);
+            if (px != py)
+                parent[px] = py;
+        }
+
+        private Corridor CreateCorridor(int roomA, int roomB, List<Vector2Int> zonePositions, Room[] rooms, bool isHorizontal)
+        {
+            int dx = zonePositions[roomB].x - zonePositions[roomA].x;
+            int dy = zonePositions[roomB].y - zonePositions[roomA].y;
+
+            if (isHorizontal)
+            {
+                bool aIsLeft = dx < 0;
+                int leftRoom = aIsLeft ? roomB : roomA;
+                int rightRoom = aIsLeft ? roomA : roomB;
+
+                int corridorStartX = rooms[leftRoom].GridX + rooms[leftRoom].Width;
+                int corridorEndX = rooms[rightRoom].GridX;
+
+                int roomALeft = rooms[leftRoom].GridY;
+                int roomARight = rooms[leftRoom].GridY + rooms[leftRoom].Height;
+                int roomBLeft = rooms[rightRoom].GridY;
+                int roomBRight = rooms[rightRoom].GridY + rooms[rightRoom].Height;
+
+                int corridorY = (roomALeft + roomARight + roomBLeft + roomBRight) / 4;
+
+                Vector2 bottomLeft = new Vector2(corridorStartX, corridorY - _corridorWidth / 2);
+                Vector2 topRight = new Vector2(corridorEndX, corridorY + _corridorWidth / 2);
+
+                var corridor = new Corridor
+                {
+                    PointFrom = bottomLeft,
+                    PointTo = topRight,
+                    FromRoomIndex = leftRoom,
+                    ToRoomIndex = rightRoom,
+                    CorridorWidth = _corridorWidth,
+                    CorridorLength = corridorEndX - corridorStartX
+                };
+
+                corridor.DoorPositions = new List<Vector3Int>();
+                for (int y = 0; y < _corridorWidth; y++)
+                {
+                    corridor.DoorPositions.Add(new Vector3Int(corridorStartX, corridorY - _corridorWidth / 2 + y, 0));
+                    corridor.DoorPositions.Add(new Vector3Int(corridorEndX - 1, corridorY - _corridorWidth / 2 + y, 0));
+                }
+
+                return corridor;
+            }
+            else
+            {
+                bool aIsBottom = dy < 0;
+                int bottomRoom = aIsBottom ? roomB : roomA;
+                int topRoom = aIsBottom ? roomA : roomB;
+
+                int corridorStartY = rooms[bottomRoom].GridY + rooms[bottomRoom].Height;
+                int corridorEndY = rooms[topRoom].GridY;
+
+                int roomABottom = rooms[bottomRoom].GridX;
+                int roomATop = rooms[bottomRoom].GridX + rooms[bottomRoom].Width;
+                int roomBBottom = rooms[topRoom].GridX;
+                int roomBTop = rooms[topRoom].GridX + rooms[topRoom].Width;
+
+                int corridorX = (roomABottom + roomATop + roomBBottom + roomBTop) / 4;
+
+                Vector2 bottomLeft = new Vector2(corridorX - _corridorWidth / 2, corridorStartY);
+                Vector2 topRight = new Vector2(corridorX + _corridorWidth / 2, corridorEndY);
+
+                var corridor = new Corridor
+                {
+                    PointFrom = bottomLeft,
+                    PointTo = topRight,
+                    FromRoomIndex = bottomRoom,
+                    ToRoomIndex = topRoom,
+                    CorridorWidth = _corridorWidth,
+                    CorridorLength = corridorEndY - corridorStartY
+                };
+
+                corridor.DoorPositions = new List<Vector3Int>();
+                for (int x = 0; x < _corridorWidth; x++)
+                {
+                    corridor.DoorPositions.Add(new Vector3Int(corridorX - _corridorWidth / 2 + x, corridorStartY, 0));
+                    corridor.DoorPositions.Add(new Vector3Int(corridorX - _corridorWidth / 2 + x, corridorEndY - 1, 0));
+                }
+
+                return corridor;
+            }
         }
 
         private int[] AddToArray(int[] array, int value)
@@ -244,16 +450,6 @@ namespace Dungeon
             }
 
             Data.Rooms[bossIndex].Type = RoomType.Boss;
-        }
-
-        // Expose for Unity Inspector regeneration
-        private void OnValidate()
-        {
-            if (_minRoomSize > OddZoneSize)
-                _minRoomSize = OddZoneSize;
-
-            if (_regenerateOnValidate)
-                Generate();
         }
     }
 }

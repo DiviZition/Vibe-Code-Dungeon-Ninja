@@ -245,9 +245,13 @@ EventBus.Publish(new PlayerDiedEvent());
 
 ---
 
-## 11. Important Notes
+## 11. Workflow: Use BMad Skills
 
-- This is a Unity project - no npm/node commands
-- All code is C# (Unity scripts)
-- Use Unity Inspector for configuration
-- No Cursor/Copilot rules exist in this project
+This project uses the BMad framework for structured development. For any development task, check available skills first:
+
+- **Story development**: `bmad-dev-story` or `gds-dev-story`
+- **Code changes**: `bmad-quick-dev` or `gds-quick-dev`
+- **Architecture**: `gds-game-architecture` or `bmad-create-architecture`
+- **Documentation**: `gds-create-gdd` or `gds-document-project`
+
+Skills are loaded via the skill tool and provide step-by-step guidance. Prefer them over ad-hoc work.

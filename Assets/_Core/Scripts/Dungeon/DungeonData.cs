@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Dungeon
 {
@@ -10,44 +11,98 @@ namespace Dungeon
 
     public class Room
     {
-        // Grid position (top-left corner)
         public int GridX { get; set; }
         public int GridY { get; set; }
-
-        // Room size in grid units
         public int Width { get; set; }
         public int Height { get; set; }
 
         public RoomType Type { get; set; }
 
-        // Connections to other rooms (indices in DungeonData.Rooms)
-        public int[] ConnectedRoomIndices { get; set; }
+        public int[] ConnectedCorridorIndices { get; set; }
 
-        // Center position for corridor connections
         public (int x, int y) Center => (GridX + Width / 2, GridY + Height / 2);
 
-        // Zone coordinates
         public int ZoneX { get; set; }
         public int ZoneY { get; set; }
 
-        // Game state flags
         public bool IsVisited { get; set; }
         public bool IsCleared { get; set; }
         public bool IsLocked { get; set; }
+
+        private int _enemyCount;
+        public int EnemyCount
+        {
+            get => _enemyCount;
+            set
+            {
+                int previous = _enemyCount;
+                _enemyCount = value;
+                OnEnemyCountChanged(previous, _enemyCount);
+            }
+        }
+
+        public System.Action OnAllEnemiesCleared;
+        private bool _hasHadEnemies;
+
+        public void AddEnemy()
+        {
+            if (_enemyCount == 0 && _hasHadEnemies)
+            {
+                _enemyCount = 1;
+                return;
+            }
+
+            bool wasEmpty = _enemyCount == 0;
+            _enemyCount++;
+            _hasHadEnemies = true;
+
+            if (wasEmpty)
+            {
+                OnFirstEnemyAdded();
+            }
+        }
+
+        public void RemoveEnemy()
+        {
+            if (_enemyCount <= 0)
+                return;
+
+            int previous = _enemyCount;
+            _enemyCount--;
+
+            if (previous > 0 && _enemyCount == 0)
+            {
+                OnAllEnemiesCleared?.Invoke();
+            }
+        }
+
+        private void OnEnemyCountChanged(int previous, int current) { }
+
+        private void OnFirstEnemyAdded()
+        {
+            Debug.Log($"Room ({GridX},{GridY}): First enemy added - closing doors");
+        }
     }
 
     public class Corridor
     {
-        // Corridor position (top-left corner)
         public Vector2 PointFrom { get; set; }
         public Vector2 PointTo { get; set; }
 
         public int CorridorWidth { get; set; }
         public int CorridorLength { get; set; }
-        
-        // Indices of rooms this corridor connects
+
         public int FromRoomIndex { get; set; }
         public int ToRoomIndex { get; set; }
+
+        public List<Vector3Int> DoorPositions { get; set; } = new List<Vector3Int>();
+
+        public System.Action OnOpenAllDoors;
+
+        public void OpenAllDoors()
+        {
+            OnOpenAllDoors?.Invoke();
+        }
     }
 
     public class DungeonData
@@ -55,11 +110,9 @@ namespace Dungeon
         public Room[] Rooms { get; set; }
         public Corridor[] Corridors { get; set; }
 
-        // Zone configuration
         public int ZoneSize { get; set; }
         public int ZonesCount { get; set; }
 
-        // Seed for reproducible generation
         public int Seed { get; set; }
     }
 }

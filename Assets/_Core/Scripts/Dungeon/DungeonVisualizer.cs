@@ -1,112 +1,167 @@
 using UnityEngine;
-using UnityEditor;
+using UnityEngine.Tilemaps;
 
 namespace Dungeon
 {
-    [CustomEditor(typeof(DungeonGenerator))]
-    public class DungeonVisualizer : Editor
+    public class DungeonVisualizer : MonoBehaviour
     {
-        public override void OnInspectorGUI()
+        [Header("Tilemaps")]
+        [SerializeField] private Tilemap _floorTilemap;
+        [SerializeField] private Tilemap _wallTilemap;
+
+        [Header("Tiles")]
+        [SerializeField] private Tile _floorTile;
+        [SerializeField] private Tile _wallTile;
+        [SerializeField] private Tile _doorTile;
+
+        private DungeonData _data;
+
+        public void Visualize(DungeonData data)
         {
-            DrawDefaultInspector();
+            _data = data;
+            ClearAll();
 
-            var generator = (DungeonGenerator)target;
-
-            if (GUILayout.Button("Generate"))
-            {
-                generator.Generate();
-            }
-        }
-
-        private void OnSceneGUI()
-        {
-            var generator = (DungeonGenerator)target;
-            var data = generator.Data;
-
-            if (data == null || data.Rooms == null)
+            if (data?.Rooms == null)
                 return;
 
-            // Draw corridors first (under rooms)
+            Debug.Log($"[DungeonVisualizer] Generating {data.Rooms.Length} rooms, {data.Corridors?.Length ?? 0} corridors");
+
+            for (int i = 0; i < data.Rooms.Length; i++)
+            {
+                var room = data.Rooms[i];
+                Debug.Log($"[Room {i}] GridX={room.GridX}, GridY={room.GridY}, Size={room.Width}x{room.Height}, " +
+                         $"Corridors=[{string.Join(",", room.ConnectedCorridorIndices ?? new int[0])}]");
+                RenderRoom(room);
+            }
+
             if (data.Corridors != null)
             {
-                foreach (var corridor in data.Corridors)
+                for (int i = 0; i < data.Corridors.Length; i++)
                 {
-                    DrawCorridor(corridor);
+                    var c = data.Corridors[i];
+                    Debug.Log($"[Corridor {i}] From=({c.PointFrom.x:F1},{c.PointFrom.y:F1}) To=({c.PointTo.x:F1},{c.PointTo.y:F1}) " +
+                             $"Width={c.CorridorWidth} Length={c.CorridorLength} Doors={c.DoorPositions?.Count ?? 0}");
+                    RenderCorridor(c);
                 }
             }
 
-            // Draw rooms
-            foreach (var room in data.Rooms)
+            Debug.Log("[DungeonVisualizer] Generation complete");
+        }
+
+        public void ClearAll()
+        {
+            _floorTilemap?.ClearAllTiles();
+            _wallTilemap?.ClearAllTiles();
+        }
+
+        private void RenderRoom(Room room)
+        {
+            RenderRoomFloor(room);
+            RenderRoomWalls(room);
+        }
+
+        private void RenderRoomFloor(Room room)
+        {
+            for (int x = room.GridX; x < room.GridX + room.Width; x++)
             {
-                DrawRoom(room);
+                for (int y = room.GridY; y < room.GridY + room.Height; y++)
+                {
+                    _floorTilemap.SetTile(new Vector3Int(x, y, 0), _floorTile);
+                }
             }
         }
 
-        private void DrawRoom(Room room)
+        private void RenderRoomWalls(Room room)
         {
-            Vector3 position = new Vector3(room.GridX, room.GridY, 0);
-            Vector3 size = new Vector3(room.Width, room.Height, 0);
+            int left = room.GridX - 1;
+            int right = room.GridX + room.Width;
+            int bottom = room.GridY - 1;
+            int top = room.GridY + room.Height;
 
-            // Get color based on room type
-            Color color = GetRoomColor(room.Type);
-
-            // Draw filled rectangle
-            Handles.color = color.WithAlpha(0.3f);
-            Handles.DrawAAConvexPolygon(
-                position,
-                position + new Vector3(size.x, 0, 0),
-                position + new Vector3(size.x, size.y, 0),
-                position + new Vector3(0, size.y, 0)
-            );
-
-            // Draw outline
-            Handles.color = color;
-            Handles.DrawWireCube(
-                position + size * 0.5f,
-                size
-            );
-
-            // Draw room info label
-            GUIStyle style = new GUIStyle();
-            style.normal.textColor = color;
-            style.fontSize = 12;
-            style.fontStyle = FontStyle.Bold;
-
-            Handles.Label(
-                position + new Vector3(1, size.y - 1, 0),
-                $"{room.Type}\n({room.ZoneX},{room.ZoneY})",
-                style
-            );
-        }
-
-        private void DrawCorridor(Corridor corridor)
-        {
-            Color corridorColor = Color.cyan;
-
-            Vector3 position = new Vector3(corridor.PointFrom.x, corridor.PointTo.y, 0);
-
-            // Draw filled rectangle
-            Handles.color = corridorColor.WithAlpha(0.5f);
-            Handles.DrawAAConvexPolygon(new Vector3[] { corridor.PointFrom, corridor.PointTo });
-        }
-
-        private Color GetRoomColor(RoomType type)
-        {
-            return type switch
+            for (int x = room.GridX - 1; x < room.GridX + room.Width + 1; x++)
             {
-                RoomType.Boss => Color.red,
-                RoomType.Normal => Color.white,
-                _ => Color.gray
-            };
-        }
-    }
+                _wallTilemap.SetTile(new Vector3Int(x, bottom, 0), _wallTile);
+                _wallTilemap.SetTile(new Vector3Int(x, top, 0), _wallTile);
+            }
 
-    // Extension method for color alpha
-    public static class ColorExtensions
-    {
-        public static Color WithAlpha(this Color color, float alpha)
+            for (int y = room.GridY; y < room.GridY + room.Height; y++)
+            {
+                _wallTilemap.SetTile(new Vector3Int(left, y, 0), _wallTile);
+                _wallTilemap.SetTile(new Vector3Int(right, y, 0), _wallTile);
+            }
+        }
+
+        private void RenderCorridor(Corridor corridor)
         {
-            return new Color(color.r, color.g, color.b, alpha);
+            int fromX = Mathf.RoundToInt(corridor.PointFrom.x);
+            int fromY = Mathf.RoundToInt(corridor.PointFrom.y);
+            int toX = Mathf.RoundToInt(corridor.PointTo.x);
+            int toY = Mathf.RoundToInt(corridor.PointTo.y);
+
+            int minX = Mathf.Min(fromX, toX);
+            int maxX = Mathf.Max(fromX, toX);
+            int minY = Mathf.Min(fromY, toY);
+            int maxY = Mathf.Max(fromY, toY);
+
+            for (int x = minX; x < maxX; x++)
+            {
+                for (int y = minY; y < maxY; y++)
+                {
+                    _floorTilemap.SetTile(new Vector3Int(x, y, 0), _floorTile);
+                }
+            }
+
+            RenderCorridorWalls(corridor, minX, maxX, minY, maxY);
+            RenderDoors(corridor);
+        }
+
+        private void RenderCorridorWalls(Corridor corridor, int minX, int maxX, int minY, int maxY)
+        {
+            if (maxX - minX > maxY - minY)
+            {
+                for (int x = minX; x < maxX; x++)
+                {
+                    _wallTilemap.SetTile(new Vector3Int(x, minY - 1, 0), _wallTile);
+                    _wallTilemap.SetTile(new Vector3Int(x, maxY, 0), _wallTile);
+                }
+            }
+            else
+            {
+                for (int y = minY; y < maxY; y++)
+                {
+                    _wallTilemap.SetTile(new Vector3Int(minX - 1, y, 0), _wallTile);
+                    _wallTilemap.SetTile(new Vector3Int(maxX, y, 0), _wallTile);
+                }
+            }
+        }
+
+        private void RenderDoors(Corridor corridor)
+        {
+            if (corridor.DoorPositions == null)
+                return;
+
+            foreach (var doorPos in corridor.DoorPositions)
+            {
+                _wallTilemap.SetTile(doorPos, _doorTile);
+            }
+        }
+
+        public void OpenDoors(int corridorIndex) => SetDoors(corridorIndex, null);
+        public void CloseDoors(int corridorIndex) => SetDoors(corridorIndex, _doorTile);
+
+        private void SetDoors(int corridorIndex, Tile tile)
+        {
+            if (_data?.Corridors == null || corridorIndex >= _data.Corridors.Length)
+                return;
+
+            var corridor = _data.Corridors[corridorIndex];
+            if (corridor.DoorPositions == null)
+                return;
+
+            foreach (var doorPos in corridor.DoorPositions)
+            {
+                _wallTilemap.SetTile(doorPos, tile);
+            }
         }
     }
 }
