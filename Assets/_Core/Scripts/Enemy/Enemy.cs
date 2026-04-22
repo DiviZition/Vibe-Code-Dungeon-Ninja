@@ -64,6 +64,7 @@ namespace Enemy
             while (action.IsFinished == false)
             {
                 action.UpdateByTime(_timeController.DeltaTime);
+
                 yield return null;
             }   
         }
