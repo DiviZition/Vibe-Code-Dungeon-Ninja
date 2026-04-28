@@ -18,7 +18,7 @@ namespace Dungeon
 
         public RoomType Type { get; set; }
 
-        public int[] ConnectedCorridorIndices { get; set; }
+        public List<CorridorData> ConnectedCorridors { get; set; }
 
         public (int x, int y) Center => (GridX + Width / 2, GridY + Height / 2);
 
@@ -84,7 +84,7 @@ namespace Dungeon
         }
     }
 
-    public class Corridor
+    public class CorridorData
     {
         public Vector2 PointFrom { get; set; }
         public Vector2 PointTo { get; set; }
@@ -96,19 +96,12 @@ namespace Dungeon
         public int ToRoomIndex { get; set; }
 
         public List<Vector3Int> DoorPositions { get; set; } = new List<Vector3Int>();
-
-        public System.Action OnOpenAllDoors;
-
-        public void OpenAllDoors()
-        {
-            OnOpenAllDoors?.Invoke();
-        }
     }
 
     public class DungeonData
     {
         public Room[] Rooms { get; set; }
-        public Corridor[] Corridors { get; set; }
+        public CorridorData[] Corridors { get; set; }
 
         public int ZoneSize { get; set; }
         public int ZonesCount { get; set; }

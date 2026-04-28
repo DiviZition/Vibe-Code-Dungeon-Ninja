@@ -62,7 +62,7 @@ namespace Dungeon
                 for (int i = 0; i < Data.Rooms.Length; i++)
                 {
                     var room = Data.Rooms[i];
-                    var corridors = room.ConnectedCorridorIndices != null ? string.Join(",", room.ConnectedCorridorIndices) : "none";
+                    var corridors = room.ConnectedCorridors != null ? string.Join(",", room.ConnectedCorridors) : "none";
                     Debug.Log($"  Room {i}: corridors=[{corridors}], type={room.Type}");
                 }
             }
@@ -157,7 +157,7 @@ namespace Dungeon
                     ZoneX = zone.x,
                     ZoneY = zone.y,
                     Type = RoomType.Normal,
-                    ConnectedCorridorIndices = new int[0],
+                    ConnectedCorridors = new List<CorridorData>(2),
                     IsVisited = false,
                     IsCleared = false,
                     IsLocked = false
@@ -169,9 +169,9 @@ namespace Dungeon
             return rooms.ToArray();
         }
 
-        private Corridor[] GenerateCorridors(List<Vector2Int> zonePositions)
+        private CorridorData[] GenerateCorridors(List<Vector2Int> zonePositions)
         {
-            var corridors = new List<Corridor>();
+            var corridors = new List<CorridorData>();
             var rooms = Data.Rooms;
             int roomCount = rooms.Length;
 
@@ -200,8 +200,8 @@ namespace Dungeon
                         if (corridor != null)
                         {
                             corridors.Add(corridor);
-                            rooms[i].ConnectedCorridorIndices = AddToArray(rooms[i].ConnectedCorridorIndices, corridors.Count - 1);
-                            rooms[j].ConnectedCorridorIndices = AddToArray(rooms[j].ConnectedCorridorIndices, corridors.Count - 1);
+                            rooms[i].ConnectedCorridors.Add(corridor);
+                            rooms[j].ConnectedCorridors.Add(corridor);
 
                             Union(component, i, j);
 
@@ -214,7 +214,7 @@ namespace Dungeon
 
             for (int i = 0; i < roomCount; i++)
             {
-                if (rooms[i].ConnectedCorridorIndices == null || rooms[i].ConnectedCorridorIndices.Length == 0)
+                if (rooms[i].ConnectedCorridors == null || rooms[i].ConnectedCorridors.Count == 0)
                 {
                     if (_debugLog)
                         Debug.Log($"  Room {i} has no corridors - finding fallback...");
@@ -244,8 +244,8 @@ namespace Dungeon
                         if (corridor != null)
                         {
                             corridors.Add(corridor);
-                            rooms[i].ConnectedCorridorIndices = AddToArray(rooms[i].ConnectedCorridorIndices, corridors.Count - 1);
-                            rooms[nearest].ConnectedCorridorIndices = AddToArray(rooms[nearest].ConnectedCorridorIndices, corridors.Count - 1);
+                            rooms[i].ConnectedCorridors.Add(corridor);
+                            rooms[nearest].ConnectedCorridors.Add(corridor);
 
                             Union(component, i, nearest);
 
@@ -303,8 +303,8 @@ namespace Dungeon
                             if (corridor != null)
                             {
                                 corridors.Add(corridor);
-                                rooms[i].ConnectedCorridorIndices = AddToArray(rooms[i].ConnectedCorridorIndices, corridors.Count - 1);
-                                rooms[nearest].ConnectedCorridorIndices = AddToArray(rooms[nearest].ConnectedCorridorIndices, corridors.Count - 1);
+                                rooms[i].ConnectedCorridors.Add(corridor);
+                                rooms[nearest].ConnectedCorridors.Add(corridor);
 
                                 Union(component, i, nearest);
                                 madeProgress = true;
@@ -339,7 +339,7 @@ namespace Dungeon
                 parent[px] = py;
         }
 
-        private Corridor CreateCorridor(int roomA, int roomB, List<Vector2Int> zonePositions, Room[] rooms, bool isHorizontal)
+        private CorridorData CreateCorridor(int roomA, int roomB, List<Vector2Int> zonePositions, Room[] rooms, bool isHorizontal)
         {
             int dx = zonePositions[roomB].x - zonePositions[roomA].x;
             int dy = zonePositions[roomB].y - zonePositions[roomA].y;
@@ -363,7 +363,7 @@ namespace Dungeon
                 Vector2 bottomLeft = new Vector2(corridorStartX, corridorY - _corridorWidth / 2);
                 Vector2 topRight = new Vector2(corridorEndX, corridorY + _corridorWidth / 2);
 
-                var corridor = new Corridor
+                var corridor = new CorridorData
                 {
                     PointFrom = bottomLeft,
                     PointTo = topRight,
@@ -401,7 +401,7 @@ namespace Dungeon
                 Vector2 bottomLeft = new Vector2(corridorX - _corridorWidth / 2, corridorStartY);
                 Vector2 topRight = new Vector2(corridorX + _corridorWidth / 2, corridorEndY);
 
-                var corridor = new Corridor
+                var corridor = new CorridorData
                 {
                     PointFrom = bottomLeft,
                     PointTo = topRight,

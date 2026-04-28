@@ -26,7 +26,8 @@ public class PlaymodeTests
     {
         //Given
         var obj = new GameObject();
-        var Dunheon = obj.AddComponent<>();
+        //var Dunheon = obj.AddComponent<>();
+        yield return null;
     }
 
     public class TestVisitor : MonoBehaviour, IVisitor

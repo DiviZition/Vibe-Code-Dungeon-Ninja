@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -30,7 +31,7 @@ namespace Dungeon
             {
                 var room = data.Rooms[i];
                 Debug.Log($"[Room {i}] GridX={room.GridX}, GridY={room.GridY}, Size={room.Width}x{room.Height}, " +
-                         $"Corridors=[{string.Join(",", room.ConnectedCorridorIndices ?? new int[0])}]");
+                         $"Corridors=[{string.Join(",", room.ConnectedCorridors ?? new List<CorridorData>(2))}]");
                 RenderRoom(room);
             }
 
@@ -91,7 +92,7 @@ namespace Dungeon
             }
         }
 
-        private void RenderCorridor(Corridor corridor)
+        private void RenderCorridor(CorridorData corridor)
         {
             int fromX = Mathf.RoundToInt(corridor.PointFrom.x);
             int fromY = Mathf.RoundToInt(corridor.PointFrom.y);
@@ -115,7 +116,7 @@ namespace Dungeon
             RenderDoors(corridor);
         }
 
-        private void RenderCorridorWalls(Corridor corridor, int minX, int maxX, int minY, int maxY)
+        private void RenderCorridorWalls(CorridorData corridor, int minX, int maxX, int minY, int maxY)
         {
             if (maxX - minX > maxY - minY)
             {
@@ -135,7 +136,7 @@ namespace Dungeon
             }
         }
 
-        private void RenderDoors(Corridor corridor)
+        private void RenderDoors(CorridorData corridor)
         {
             if (corridor.DoorPositions == null)
                 return;
@@ -146,16 +147,12 @@ namespace Dungeon
             }
         }
 
-        public void OpenDoors(int corridorIndex) => SetDoors(corridorIndex, null);
-        public void CloseDoors(int corridorIndex) => SetDoors(corridorIndex, _doorTile);
+        public void OpenCorridor(CorridorData corridor) => SetCorridorDoors(corridor, null);
+        public void CloseCorridor(CorridorData corridor) => SetCorridorDoors(corridor, _doorTile);
 
-        private void SetDoors(int corridorIndex, Tile tile)
+        private void SetCorridorDoors(CorridorData corridor, Tile tile)
         {
-            if (_data?.Corridors == null || corridorIndex >= _data.Corridors.Length)
-                return;
-
-            var corridor = _data.Corridors[corridorIndex];
-            if (corridor.DoorPositions == null)
+            if (corridor?.DoorPositions == null)
                 return;
 
             foreach (var doorPos in corridor.DoorPositions)

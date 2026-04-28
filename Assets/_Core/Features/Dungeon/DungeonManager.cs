@@ -34,45 +34,31 @@ namespace Dungeon
 
             if (data.Corridors == null)
                 return;
-
-            for (int i = 0; i < data.Corridors.Length; i++)
-            {
-                var corridor = data.Corridors[i];
-                int corridorIndex = i;
-
-                corridor.OnOpenAllDoors = () => _visualizer.OpenDoors(corridorIndex);
-            }
         }
 
         private void OnRoomCleared(int roomIndex)
         {
             Debug.Log($"Room {roomIndex} cleared!");
-            var data = _generator.Data;
-            var room = data.Rooms[roomIndex];
+            var room = _generator.Data.Rooms[roomIndex];
 
-            foreach (var corridorIndex in room.ConnectedCorridorIndices)
-            {
-                data.Corridors[corridorIndex].OpenAllDoors();
-            }
+            OpenRoom(roomIndex);
         }
 
-        public void OpenRoom(int roomIndex) => ApplyToRoomCorridors(roomIndex, _visualizer.OpenDoors);
-        public void CloseRoom(int roomIndex) => ApplyToRoomCorridors(roomIndex, _visualizer.CloseDoors);
+        public void OpenRoom(int roomIndex) => ApplyToRoomCorridors(roomIndex, _visualizer.OpenCorridor);
+        public void CloseRoom(int roomIndex) => ApplyToRoomCorridors(roomIndex, _visualizer.CloseCorridor);
 
-        private void ApplyToRoomCorridors(int roomIndex, System.Action<int> action)
+        private void ApplyToRoomCorridors(int roomIndex, System.Action<CorridorData> action)
         {
             var data = _generator.Data;
             if (data.Rooms == null || roomIndex >= data.Rooms.Length)
                 return;
 
             var room = data.Rooms[roomIndex];
-            if (room.ConnectedCorridorIndices == null)
-                return;
+            if (room.ConnectedCorridors == null)
+                throw new NullReferenceException($"No corridors set for room {roomIndex}");
 
-            foreach (var corridorIndex in room.ConnectedCorridorIndices)
-            {
-                action(corridorIndex);
-            }
+            foreach (var corridor in room.ConnectedCorridors)
+                action(corridor);
         }
     }
 }

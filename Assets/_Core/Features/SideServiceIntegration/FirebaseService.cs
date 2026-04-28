@@ -57,6 +57,6 @@ public class FirebaseService : IDisposable
 
     public void Dispose()
     {
-        _eventsQueue.Clear();
+        _eventsQueue?.Clear();
     }
 }

@@ -1,23 +1,12 @@
 OVDF v1.1
-Dungeon.DungeonManager, Assembly-CSharp
+Dungeon.DungeonManager, Main
 MetaGuid:88d207d9d30ff9f4982e8d0534a1edd1
 
 # GenerateDungeon()
 Visibility: Shown
 
 # OnRoomCleared(int)
-Visibility: Shown
-+ [Sirenix.OdinInspector.ButtonAttribute]
-	Name = "Open Room"
-	Style = FoldoutButton
-	Icon = AlignCenter
-	stretch = True
-	HasDefinedStretch = True
-	Expanded = False
-	DisplayParameters = True
-	DirtyOnClick = True
-	drawResult = False
-	drawResultIsSet = True
+Visibility: Hidden
 
 # CloseRoom(int)
 Visibility: Shown
@@ -28,3 +17,11 @@ Visibility: Shown
 	Expanded = False
 	stretch = False
 	HasDefinedStretch = True
+
+# OpenRoom(int)
+Visibility: Shown
++ [Sirenix.OdinInspector.ButtonAttribute]
+	Name = "Open Room"
+	Style = FoldoutButton
+	Icon = AlignEnd
+	Expanded = False
