@@ -1,17 +1,18 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Enemy;
 
 namespace Dungeon
 {
     public class DungeonGenerator : MonoBehaviour
     {
         [Header("Generation Settings")]
-        [SerializeField] private int _zoneSize = 10;
-        [SerializeField] private int _minRoomSize = 3;
-        [SerializeField, Range(1, 10)] private int _zonesCount = 5;
-        [SerializeField] private int _corridorWidth = 1;
-        [SerializeField] private int _corridorLength = 1;
-        [SerializeField] private int _seed;
+        public int ZoneSize = 15;
+        public int MinRoomSize = 6;
+        [Range(1, 20)] public int ZonesCount = 10;
+        public int CorridorWidth = 2;
+        public int CorridorLength = 1;
+        public int Seed = 0;
 
         [Header("Debug")]
         [SerializeField] private bool _regenerateOnValidate;
@@ -19,51 +20,31 @@ namespace Dungeon
 
         // Output - the generated dungeon data
         public DungeonData Data { get; private set; }
-        public int OddZoneSize => _zoneSize % 2 == 0 ? _zoneSize + 1: _zoneSize;
+        public int OddZoneSize => ZoneSize % 2 == 0 ? ZoneSize + 1: ZoneSize;
 
         public void Generate()
         {
-            if (_minRoomSize > OddZoneSize)
-                _minRoomSize = OddZoneSize;
+            if (MinRoomSize > OddZoneSize)
+                MinRoomSize = OddZoneSize;
 
-            int seed = _seed == 0 ? Random.Range(0, int.MaxValue) : _seed;
+            int seed = Seed == 0 ? Random.Range(0, int.MaxValue) : Seed;
 
-            if (_debugLog)
-                Debug.Log($"[Generator] Seed={seed}, ZoneSize={OddZoneSize}, Zones={_zonesCount}, CorridorWidth={_corridorWidth}, CorridorLength={_corridorLength}");
+            Log($"[Generator] Seed={seed}, ZoneSize={OddZoneSize}, Zones={ZonesCount}, CorridorWidth={CorridorWidth}, CorridorLength={CorridorLength}");
 
             var random = new System.Random(seed);
-
-            Data = new DungeonData
-            {
-                ZoneSize = OddZoneSize,
-                ZonesCount = _zonesCount,
-                Seed = seed,
-                Rooms = null,
-                Corridors = null
-            };
-
             var zonePositions = GenerateZonePositions(random);
+            List<RoomData> rooms = PlaceRoomsInZones(random, zonePositions);
+            List<CorridorData> corridors = GenerateCorridors(rooms, zonePositions);
 
-            if (_debugLog)
-                Debug.Log($"[Generator] Generated {zonePositions.Count} zone positions");
-
-            Data.Rooms = PlaceRoomsInZones(random, zonePositions);
-
-            if (_debugLog)
-                Debug.Log($"[Generator] Generated {Data.Rooms.Length} rooms");
-
-            Data.Corridors = GenerateCorridors(zonePositions);
-
-            if (_debugLog)
-                Debug.Log($"[Generator] Generated {Data.Corridors.Length} corridors");
+            Data = new DungeonData(rooms, corridors, ZoneSize, ZonesCount, Seed);
 
             if (_debugLog)
             {
-                for (int i = 0; i < Data.Rooms.Length; i++)
+                for (int i = 0; i < Data.Rooms.Count; i++)
                 {
                     var room = Data.Rooms[i];
-                    var corridors = room.ConnectedCorridors != null ? string.Join(",", room.ConnectedCorridors) : "none";
-                    Debug.Log($"  Room {i}: corridors=[{corridors}], type={room.Type}");
+                    var roomCorridors = room.ConnectedCorridors != null ? string.Join(",", room.ConnectedCorridors) : "none";
+                    Debug.Log($"  Room {i}: corridors=[{roomCorridors}], type={room.Type}");
                 }
             }
 
@@ -75,10 +56,10 @@ namespace Dungeon
             var zones = new List<Vector2Int>();
             zones.Add(new Vector2Int(0, 0));
 
-            int maxAttempts = _zonesCount * 100;
+            int maxAttempts = ZonesCount * 100;
             int zoneHalf = OddZoneSize / 2;
 
-            while (zones.Count < _zonesCount)
+            while (zones.Count < ZonesCount)
             {
                 bool placed = false;
                 int attempts = 0;
@@ -99,10 +80,10 @@ namespace Dungeon
 
                     switch (direction)
                     {
-                        case 0: newY += OddZoneSize + _corridorLength; break;  // up
-                        case 1: newY -= OddZoneSize + _corridorLength; break;  // down
-                        case 2: newX -= OddZoneSize + _corridorLength; break;  // left
-                        case 3: newX += OddZoneSize + _corridorLength; break;  // right
+                        case 0: newY += OddZoneSize + CorridorLength; break;  // up
+                        case 1: newY -= OddZoneSize + CorridorLength; break;  // down
+                        case 2: newX -= OddZoneSize + CorridorLength; break;  // left
+                        case 3: newX += OddZoneSize + CorridorLength; break;  // right
                     }
 
                     // Check if position already occupied
@@ -133,56 +114,42 @@ namespace Dungeon
             return zones;
         }
 
-        private Room[] PlaceRoomsInZones(System.Random random, List<Vector2Int> zonePositions)
+        private List<RoomData> PlaceRoomsInZones(System.Random random, List<Vector2Int> zonePositions)
         {
-            var rooms = new List<Room>();
+            var rooms = new List<RoomData>();
 
             for (int i = 0; i < zonePositions.Count; i++)
             {
                 var zone = zonePositions[i];
 
                 // Random room size between _minRoomSize and _zoneSize
-                int width = random.Next(_minRoomSize, OddZoneSize);
-                int height = random.Next(_minRoomSize, OddZoneSize);
+                int width = random.Next(MinRoomSize, OddZoneSize);
+                int height = random.Next(MinRoomSize, OddZoneSize);
 
                 int roomX = zone.x - width / 2;
                 int roomY = zone.y - height / 2;
 
-                var room = new Room
-                {
-                    GridX = roomX,
-                    GridY = roomY,
-                    Width = width,
-                    Height = height,
-                    ZoneX = zone.x,
-                    ZoneY = zone.y,
-                    Type = RoomType.Normal,
-                    ConnectedCorridors = new List<CorridorData>(2),
-                    IsVisited = false,
-                    IsCleared = false,
-                    IsLocked = false
-                };
+                var room = new RoomData(new Vector2Int(roomX, roomY), width, height);
 
                 rooms.Add(room);
             }
 
-            return rooms.ToArray();
+            return rooms;
         }
 
-        private CorridorData[] GenerateCorridors(List<Vector2Int> zonePositions)
+        private List<CorridorData> GenerateCorridors(List<RoomData> rooms, List<Vector2Int> zonePositions)
         {
             var corridors = new List<CorridorData>();
-            var rooms = Data.Rooms;
-            int roomCount = rooms.Length;
+            int roomCount = rooms.Count;
 
             if (roomCount == 0)
-                return corridors.ToArray();
+                return corridors;
 
             var component = new int[roomCount];
             for (int i = 0; i < roomCount; i++)
                 component[i] = i;
 
-            int expectedDistance = OddZoneSize + _corridorLength;
+            int expectedDistance = OddZoneSize + CorridorLength;
 
             for (int i = 0; i < roomCount; i++)
             {
@@ -321,7 +288,7 @@ namespace Dungeon
             if (iterations >= safetyLimit)
                 Debug.LogError("Dungeon generation: hit safety limit in connectivity check!");
 
-            return corridors.ToArray();
+            return corridors;
         }
 
         private int Find(int[] parent, int x)
@@ -339,7 +306,7 @@ namespace Dungeon
                 parent[px] = py;
         }
 
-        private CorridorData CreateCorridor(int roomA, int roomB, List<Vector2Int> zonePositions, Room[] rooms, bool isHorizontal)
+        private CorridorData CreateCorridor(int roomA, int roomB, List<Vector2Int> zonePositions, List<RoomData> rooms, bool isHorizontal)
         {
             int dx = zonePositions[roomB].x - zonePositions[roomA].x;
             int dy = zonePositions[roomB].y - zonePositions[roomA].y;
@@ -360,24 +327,15 @@ namespace Dungeon
 
                 int corridorY = (roomALeft + roomARight + roomBLeft + roomBRight) / 4;
 
-                Vector2 bottomLeft = new Vector2(corridorStartX, corridorY - _corridorWidth / 2);
-                Vector2 topRight = new Vector2(corridorEndX, corridorY + _corridorWidth / 2);
+                Vector2 bottomLeft = new Vector2(corridorStartX, corridorY - CorridorWidth / 2);
+                Vector2 topRight = new Vector2(corridorEndX, corridorY + CorridorWidth / 2);
 
-                var corridor = new CorridorData
-                {
-                    PointFrom = bottomLeft,
-                    PointTo = topRight,
-                    FromRoomIndex = leftRoom,
-                    ToRoomIndex = rightRoom,
-                    CorridorWidth = _corridorWidth,
-                    CorridorLength = corridorEndX - corridorStartX
-                };
+                var corridor = new CorridorData(bottomLeft, topRight, CorridorWidth, corridorEndX - corridorStartX, leftRoom, rightRoom);
 
-                corridor.DoorPositions = new List<Vector3Int>();
-                for (int y = 0; y < _corridorWidth; y++)
+                for (int y = 0; y < CorridorWidth; y++)
                 {
-                    corridor.DoorPositions.Add(new Vector3Int(corridorStartX, corridorY - _corridorWidth / 2 + y, 0));
-                    corridor.DoorPositions.Add(new Vector3Int(corridorEndX - 1, corridorY - _corridorWidth / 2 + y, 0));
+                    corridor.DoorPositions.Add(new Vector3Int(corridorStartX, corridorY - CorridorWidth / 2 + y, 0));
+                    corridor.DoorPositions.Add(new Vector3Int(corridorEndX - 1, corridorY - CorridorWidth / 2 + y, 0));
                 }
 
                 return corridor;
@@ -398,49 +356,34 @@ namespace Dungeon
 
                 int corridorX = (roomABottom + roomATop + roomBBottom + roomBTop) / 4;
 
-                Vector2 bottomLeft = new Vector2(corridorX - _corridorWidth / 2, corridorStartY);
-                Vector2 topRight = new Vector2(corridorX + _corridorWidth / 2, corridorEndY);
+                Vector2 bottomLeft = new Vector2(corridorX - CorridorWidth / 2, corridorStartY);
+                Vector2 topRight = new Vector2(corridorX + CorridorWidth / 2, corridorEndY);
 
-                var corridor = new CorridorData
-                {
-                    PointFrom = bottomLeft,
-                    PointTo = topRight,
-                    FromRoomIndex = bottomRoom,
-                    ToRoomIndex = topRoom,
-                    CorridorWidth = _corridorWidth,
-                    CorridorLength = corridorEndY - corridorStartY
-                };
+                var corridor = new CorridorData(bottomLeft, topRight, CorridorWidth, corridorEndY - corridorStartY, bottomRoom, topRoom);
 
-                corridor.DoorPositions = new List<Vector3Int>();
-                for (int x = 0; x < _corridorWidth; x++)
+                for (int x = 0; x < CorridorWidth; x++)
                 {
-                    corridor.DoorPositions.Add(new Vector3Int(corridorX - _corridorWidth / 2 + x, corridorStartY, 0));
-                    corridor.DoorPositions.Add(new Vector3Int(corridorX - _corridorWidth / 2 + x, corridorEndY - 1, 0));
+                    corridor.DoorPositions.Add(new Vector3Int(corridorX - CorridorWidth / 2 + x, corridorStartY, 0));
+                    corridor.DoorPositions.Add(new Vector3Int(corridorX - CorridorWidth / 2 + x, corridorEndY - 1, 0));
                 }
 
                 return corridor;
             }
         }
 
-        private int[] AddToArray(int[] array, int value)
-        {
-            var list = new List<int>(array) { value };
-            return list.ToArray();
-        }
-
         private void DetermineBossRoom()
         {
-            if (Data.Rooms == null || Data.Rooms.Length == 0)
+            if (Data.Rooms == null || Data.Rooms.Count == 0)
                 return;
 
             var startRoom = Data.Rooms[0];
             int maxDistance = -1;
             int bossIndex = 0;
 
-            for (int i = 1; i < Data.Rooms.Length; i++)
+            for (int i = 1; i < Data.Rooms.Count; i++)
             {
                 var room = Data.Rooms[i];
-                int distance = Mathf.Abs(room.ZoneX - startRoom.ZoneX) + Mathf.Abs(room.ZoneY - startRoom.ZoneY);
+                int distance = Mathf.Abs(room.GridX - startRoom.GridX) + Mathf.Abs(room.GridY - startRoom.GridY);
 
                 if (distance > maxDistance)
                 {
@@ -449,7 +392,13 @@ namespace Dungeon
                 }
             }
 
-            Data.Rooms[bossIndex].Type = RoomType.Boss;
+            Data.Rooms[bossIndex].SetRoomType(RoomType.Boss);
+        }
+
+        private void Log(string message)
+        {
+            if (_debugLog == true)
+                Debug.Log(message);
         }
     }
 }

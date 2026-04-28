@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Zenject;
 using TimeControll;
@@ -17,7 +14,7 @@ namespace Enemy
         Attacking
     }
 
-    public class Enemy : MonoBehaviour
+    public class EnemyBase : MonoBehaviour
     {
         [field: SerializeField] public PlayerHealth Health { get; private set; }
 

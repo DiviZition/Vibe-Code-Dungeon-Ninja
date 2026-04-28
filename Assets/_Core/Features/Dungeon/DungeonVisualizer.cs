@@ -1,3 +1,5 @@
+using R3;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -16,34 +18,32 @@ namespace Dungeon
         [SerializeField] private Tile _doorTile;
 
         private DungeonData _data;
+        private IDisposable _corridorEvents;
 
         public void Visualize(DungeonData data)
         {
             _data = data;
             ClearAll();
 
-            if (data?.Rooms == null)
-                return;
+            if (data == null || data.Rooms == null || data.Corridors == null)
+                throw new NullReferenceException($"DungeonData = [{data}], Rooms = [{data.Rooms}], Corridors = [{data.Corridors}]");
 
-            Debug.Log($"[DungeonVisualizer] Generating {data.Rooms.Length} rooms, {data.Corridors?.Length ?? 0} corridors");
+            Debug.Log($"[DungeonVisualizer] Generating {data.Rooms.Count} rooms, {data.Corridors?.Count ?? 0} corridors");
 
-            for (int i = 0; i < data.Rooms.Length; i++)
+            foreach (var room in data.Rooms)
             {
-                var room = data.Rooms[i];
-                Debug.Log($"[Room {i}] GridX={room.GridX}, GridY={room.GridY}, Size={room.Width}x{room.Height}, " +
-                         $"Corridors=[{string.Join(",", room.ConnectedCorridors ?? new List<CorridorData>(2))}]");
                 RenderRoom(room);
+                Debug.Log($"[Room {room}] GridX={room.GridX}, GridY={room.GridY}, Size={room.Width}x{room.Height}, " +
+                         $"Corridors Count=[{room.ConnectedCorridors.Count}]");
             }
 
-            if (data.Corridors != null)
+            foreach (var corridor in data.Corridors)
             {
-                for (int i = 0; i < data.Corridors.Length; i++)
-                {
-                    var c = data.Corridors[i];
-                    Debug.Log($"[Corridor {i}] From=({c.PointFrom.x:F1},{c.PointFrom.y:F1}) To=({c.PointTo.x:F1},{c.PointTo.y:F1}) " +
-                             $"Width={c.CorridorWidth} Length={c.CorridorLength} Doors={c.DoorPositions?.Count ?? 0}");
-                    RenderCorridor(c);
-                }
+                RenderCorridor(corridor);
+                SubscribeForCorridorsEvents(corridor);
+                Debug.Log($"[Corridor {corridor}] From=({corridor.PointFrom.x:F1},{corridor.PointFrom.y:F1}) " +
+                    $"To=({corridor.PointTo.x:F1},{corridor.PointTo.y:F1}) Width={corridor.Width} Length={corridor.Length} " +
+                    $"Doors={corridor.DoorPositions?.Count ?? 0}");
             }
 
             Debug.Log("[DungeonVisualizer] Generation complete");
@@ -55,13 +55,13 @@ namespace Dungeon
             _wallTilemap?.ClearAllTiles();
         }
 
-        private void RenderRoom(Room room)
+        private void RenderRoom(RoomData room)
         {
             RenderRoomFloor(room);
             RenderRoomWalls(room);
         }
 
-        private void RenderRoomFloor(Room room)
+        private void RenderRoomFloor(RoomData room)
         {
             for (int x = room.GridX; x < room.GridX + room.Width; x++)
             {
@@ -72,7 +72,7 @@ namespace Dungeon
             }
         }
 
-        private void RenderRoomWalls(Room room)
+        private void RenderRoomWalls(RoomData room)
         {
             int left = room.GridX - 1;
             int right = room.GridX + room.Width;
@@ -113,7 +113,14 @@ namespace Dungeon
             }
 
             RenderCorridorWalls(corridor, minX, maxX, minY, maxY);
-            RenderDoors(corridor);
+            CloseCorridor(corridor);
+        }
+
+        private void SubscribeForCorridorsEvents(CorridorData corridor)
+        {
+            var openEvent = corridor.OnOpened.Subscribe(OpenCorridor);
+            var closeEvent = corridor.OnClosed.Subscribe(CloseCorridor);
+            _corridorEvents = Disposable.Combine(openEvent, closeEvent);
         }
 
         private void RenderCorridorWalls(CorridorData corridor, int minX, int maxX, int minY, int maxY)
@@ -136,17 +143,6 @@ namespace Dungeon
             }
         }
 
-        private void RenderDoors(CorridorData corridor)
-        {
-            if (corridor.DoorPositions == null)
-                return;
-
-            foreach (var doorPos in corridor.DoorPositions)
-            {
-                _wallTilemap.SetTile(doorPos, _doorTile);
-            }
-        }
-
         public void OpenCorridor(CorridorData corridor) => SetCorridorDoors(corridor, null);
         public void CloseCorridor(CorridorData corridor) => SetCorridorDoors(corridor, _doorTile);
 
@@ -159,6 +155,11 @@ namespace Dungeon
             {
                 _wallTilemap.SetTile(doorPos, tile);
             }
+        }
+
+        private void OnDestroy()
+        {
+            _corridorEvents?.Dispose();
         }
     }
 }
