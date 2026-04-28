@@ -6,6 +6,7 @@
     "com.google.external-dependency-manager": "file:../Assets/Packages/Firebase/com.google.external-dependency-manager-1.2.187.tgz",
     "com.google.firebase.analytics": "file:../Assets/Packages/Firebase/com.google.firebase.analytics-13.10.0.tgz",
     "com.google.firebase.app": "file:../Assets/Packages/Firebase/com.google.firebase.app-13.10.0.tgz",
+    "com.ivanmurzak.unity.mcp": "0.66.1",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.ai.navigation": "2.0.10",
     "com.unity.cinemachine": "3.1.6",
@@ -24,6 +25,7 @@
     "com.unity.timeline": "1.8.10",
     "com.unity.ugui": "2.0.0",
     "com.unity.vectorgraphics": "3.0.0-preview.7",
+    "net.tnrd.nsubstitute": "https://github.com/Thundernerd/Unity3D-NSubstitute.git",
     "com.unity.modules.accessibility": "1.0.0",
     "com.unity.modules.adaptiveperformance": "1.0.0",
     "com.unity.modules.ai": "1.0.0",
@@ -55,8 +57,7 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0",
-    "com.ivanmurzak.unity.mcp": "0.66.0"
+    "com.unity.modules.xr": "1.0.0"
   },
   "scopedRegistries": [
     {

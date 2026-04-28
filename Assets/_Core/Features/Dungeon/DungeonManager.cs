@@ -9,11 +9,6 @@ namespace Dungeon
         [SerializeField] private DungeonGenerator _generator;
         [SerializeField] private DungeonVisualizer _visualizer;
 
-        private void Start()
-        {
-            GenerateDungeon();
-        }
-
         [ContextMenu("Generate Dungeon")]
         public void GenerateDungeon()
         {

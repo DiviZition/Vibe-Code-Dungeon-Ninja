@@ -22,11 +22,5 @@ public class DevTool : MonoBehaviour
     [Button]
     private void DoAction()
     {
-        _fireBase.FireEvent("player_died");
-    }
-
-    private void Start()
-    {
-        DoAction();
     }
 }
