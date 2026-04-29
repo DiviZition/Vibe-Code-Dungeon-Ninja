@@ -22,7 +22,7 @@ namespace Dungeon
         public RoomType Type { get; private set; }
 
         public List<CorridorData> ConnectedCorridors { get; private set; }
-        public List<EnemyBase> EnemiesInside { get; private set; }
+        public List<IEnemy> EnemiesInside { get; private set; }
 
         public Subject<RoomData> OnAllEnemiesCleared { get; private set; }
         public Subject<RoomData> OnNewEnemiesAppeared { get; private set; }
@@ -33,7 +33,7 @@ namespace Dungeon
             OnNewEnemiesAppeared = new Subject<RoomData>();
 
             ConnectedCorridors = new List<CorridorData>(2);
-            EnemiesInside = new List<EnemyBase>(4);
+            EnemiesInside = new List<IEnemy>(4);
 
             GridX = grid.x;
             GridY = grid.y;
@@ -45,15 +45,17 @@ namespace Dungeon
 
         public void SetRoomType(RoomType newRoomType) => Type = newRoomType;
 
-        public void AddEnemy(EnemyBase enemyToAdd)
+        public void AddEnemy(IEnemy enemyToAdd)
         {
+            if (enemyToAdd == null) return;
+
             if (EnemiesInside.Count <= 0)
                 OnNewEnemiesAppeared.OnNext(this);
 
             EnemiesInside.Add(enemyToAdd);
         }
 
-        public void RemoveEnemy(EnemyBase enemyToRemove)
+        public void RemoveEnemy(IEnemy enemyToRemove)
         {
             if (EnemiesInside.Contains(enemyToRemove) == true)
                 EnemiesInside.Remove(enemyToRemove);
@@ -83,14 +85,14 @@ namespace Dungeon
         public bool IsOpened { get; private set; }
 
         public List<Vector3Int> DoorPositions { get; private set; }
-        public Subject<CorridorData> OnOpened {  get; private set; }
-        public Subject<CorridorData> OnClosed {  get; private set; }
+        public Subject<CorridorData> OnDoorStateChanged {  get; private set; }
 
         public CorridorData(Vector2 pointFrom, Vector2 pointTo, int width, int length, int fromRoomIndex, int toRoomIndex)
         {
+            IsOpened = true;
+
             DoorPositions = new List<Vector3Int>();
-            OnOpened = new Subject<CorridorData>();
-            OnClosed = new Subject<CorridorData>();
+            OnDoorStateChanged = new Subject<CorridorData>();
 
             PointFrom = pointFrom;
             PointTo = pointTo;
@@ -103,18 +105,10 @@ namespace Dungeon
         public void SetIsOpened(bool isOpened)
         {
             IsOpened = isOpened;
-
-            if (isOpened)
-                OnOpened.OnNext(this);
-            else 
-                OnClosed.OnNext(this);
+            OnDoorStateChanged.OnNext(this);
         }
 
-        public void Dispose()
-        {
-            OnOpened?.Dispose();
-            OnClosed?.Dispose();
-        }
+        public void Dispose() => OnDoorStateChanged?.Dispose();
     }
 
     public class DungeonData : IDisposable

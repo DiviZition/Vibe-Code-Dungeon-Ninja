@@ -113,14 +113,12 @@ namespace Dungeon
             }
 
             RenderCorridorWalls(corridor, minX, maxX, minY, maxY);
-            CloseCorridor(corridor);
+            UpdateCorridorDoors(corridor);
         }
 
         private void SubscribeForCorridorsEvents(CorridorData corridor)
         {
-            var openEvent = corridor.OnOpened.Subscribe(OpenCorridor);
-            var closeEvent = corridor.OnClosed.Subscribe(CloseCorridor);
-            _corridorEvents = Disposable.Combine(openEvent, closeEvent);
+            _corridorEvents = corridor.OnDoorStateChanged.Subscribe(UpdateCorridorDoors);
         }
 
         private void RenderCorridorWalls(CorridorData corridor, int minX, int maxX, int minY, int maxY)
@@ -143,17 +141,15 @@ namespace Dungeon
             }
         }
 
-        public void OpenCorridor(CorridorData corridor) => SetCorridorDoors(corridor, null);
-        public void CloseCorridor(CorridorData corridor) => SetCorridorDoors(corridor, _doorTile);
-
-        private void SetCorridorDoors(CorridorData corridor, Tile tile)
+        public void UpdateCorridorDoors(CorridorData corridor)
         {
             if (corridor?.DoorPositions == null)
                 return;
 
+            var doorTile = corridor.IsOpened ? null : _doorTile;
             foreach (var doorPos in corridor.DoorPositions)
             {
-                _wallTilemap.SetTile(doorPos, tile);
+                _wallTilemap.SetTile(doorPos, doorTile);
             }
         }
 
