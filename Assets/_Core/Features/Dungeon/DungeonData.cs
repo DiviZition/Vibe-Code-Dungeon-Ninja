@@ -79,6 +79,8 @@ namespace Dungeon
         public int Width { get; private set; }
         public int Length { get; private set; }
 
+        public bool IsHorizontal { get; private set; }
+
         public int FromRoomIndex { get; private set; }
         public int ToRoomIndex { get; private set; }
 
@@ -87,7 +89,7 @@ namespace Dungeon
         public List<Vector3Int> DoorPositions { get; private set; }
         public Subject<CorridorData> OnDoorStateChanged {  get; private set; }
 
-        public CorridorData(Vector2 pointFrom, Vector2 pointTo, int width, int length, int fromRoomIndex, int toRoomIndex)
+        public CorridorData(Vector2 pointFrom, Vector2 pointTo, int width, int length, bool isHorizontal, int fromRoomIndex, int toRoomIndex)
         {
             IsOpened = true;
 
@@ -98,6 +100,7 @@ namespace Dungeon
             PointTo = pointTo;
             Width = width;
             Length = length;
+            IsHorizontal = isHorizontal;
             FromRoomIndex = fromRoomIndex;
             ToRoomIndex = toRoomIndex;
         }

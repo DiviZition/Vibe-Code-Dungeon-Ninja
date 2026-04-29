@@ -15,7 +15,6 @@ namespace Dungeon
         public int Seed = 0;
 
         [Header("Debug")]
-        [SerializeField] private bool _regenerateOnValidate;
         [SerializeField] private bool _debugLog;
 
         // Output - the generated dungeon data
@@ -44,7 +43,6 @@ namespace Dungeon
                 {
                     var room = Data.Rooms[i];
                     var roomCorridors = room.ConnectedCorridors != null ? string.Join(",", room.ConnectedCorridors) : "none";
-                    Debug.Log($"  Room {i}: corridors=[{roomCorridors}], type={room.Type}");
                 }
             }
 
@@ -183,9 +181,6 @@ namespace Dungeon
             {
                 if (rooms[i].ConnectedCorridors == null || rooms[i].ConnectedCorridors.Count == 0)
                 {
-                    if (_debugLog)
-                        Debug.Log($"  Room {i} has no corridors - finding fallback...");
-
                     int nearest = -1;
                     float minDist = float.MaxValue;
                     for (int j = 0; j < roomCount; j++)
@@ -204,9 +199,6 @@ namespace Dungeon
                         int dy = zonePositions[nearest].y - zonePositions[i].y;
                         bool isHorizontal = Mathf.Abs(dx) > Mathf.Abs(dy);
 
-                        if (_debugLog)
-                            Debug.Log($"  Room {i} -> nearest Room {nearest}, dx={dx}, dy={dy}, horizontal={isHorizontal}");
-
                         var corridor = CreateCorridor(i, nearest, zonePositions, rooms, isHorizontal);
                         if (corridor != null)
                         {
@@ -215,9 +207,6 @@ namespace Dungeon
                             rooms[nearest].ConnectedCorridors.Add(corridor);
 
                             Union(component, i, nearest);
-
-                            if (_debugLog)
-                                Debug.Log($"  Fallback corridor {corridors.Count - 1}: Room {i} -> Room {nearest}");
                         }
                         else
                         {
@@ -245,9 +234,6 @@ namespace Dungeon
                 {
                     if (Find(component, i) != rootComponent)
                     {
-                        if (_debugLog)
-                            Debug.Log($"  Room {i} disconnected - connecting...");
-
                         int nearest = -1;
                         float minDist = float.MaxValue;
                         for (int j = 0; j < roomCount; j++)
@@ -275,9 +261,6 @@ namespace Dungeon
 
                                 Union(component, i, nearest);
                                 madeProgress = true;
-
-                                if (_debugLog)
-                                    Debug.Log($"  Bridge corridor: Room {i} -> Room {nearest}");
                             }
                         }
                         break;
@@ -317,8 +300,20 @@ namespace Dungeon
                 int leftRoom = aIsLeft ? roomB : roomA;
                 int rightRoom = aIsLeft ? roomA : roomB;
 
+                // Calculate where corridor should be (between rooms)
                 int corridorStartX = rooms[leftRoom].GridX + rooms[leftRoom].Width;
                 int corridorEndX = rooms[rightRoom].GridX;
+
+                // Log for debugging
+                if (_debugLog)
+                    Debug.Log($"Horizontal corridor: leftRoom[{leftRoom}] right edge={corridorStartX}, rightRoom[{rightRoom}] left edge={corridorEndX}, gap={corridorEndX - corridorStartX}");
+
+                // If rooms overlap or gap is too small, skip this corridor
+                if (corridorStartX >= corridorEndX)
+                {
+                    Debug.LogWarning($"Corridor gap is {corridorEndX - corridorStartX} (invalid) between Room {leftRoom} (right edge={corridorStartX}) and Room {rightRoom} (left edge={corridorEndX}). Skipping.");
+                    return null;
+                }
 
                 int roomALeft = rooms[leftRoom].GridY;
                 int roomARight = rooms[leftRoom].GridY + rooms[leftRoom].Height;
@@ -327,16 +322,17 @@ namespace Dungeon
 
                 int corridorY = (roomALeft + roomARight + roomBLeft + roomBRight) / 4;
 
-                Vector2 bottomLeft = new Vector2(corridorStartX, corridorY - CorridorWidth / 2);
-                Vector2 topRight = new Vector2(corridorEndX, corridorY + CorridorWidth / 2);
+                int corridorStartY = corridorY - CorridorWidth / 2;
+                Vector2 bottomLeft = new Vector2(corridorStartX, corridorStartY);
+                Vector2 topRight = new Vector2(corridorEndX, corridorStartY + CorridorWidth);
 
-                var corridor = new CorridorData(bottomLeft, topRight, CorridorWidth, corridorEndX - corridorStartX, leftRoom, rightRoom);
+                var corridor = new CorridorData(bottomLeft, topRight, CorridorWidth, corridorEndX - corridorStartX, true, leftRoom, rightRoom);
 
                 for (int y = 0; y < CorridorWidth; y++)
-                {
-                    corridor.DoorPositions.Add(new Vector3Int(corridorStartX, corridorY - CorridorWidth / 2 + y, 0));
-                    corridor.DoorPositions.Add(new Vector3Int(corridorEndX - 1, corridorY - CorridorWidth / 2 + y, 0));
-                }
+                 {
+                     corridor.DoorPositions.Add(new Vector3Int(corridorStartX, corridorStartY + y, 0));      // Left room east wall
+                     corridor.DoorPositions.Add(new Vector3Int(corridorEndX - 1, corridorStartY + y, 0));  // Right room west wall
+                   }
 
                 return corridor;
             }
@@ -349,6 +345,17 @@ namespace Dungeon
                 int corridorStartY = rooms[bottomRoom].GridY + rooms[bottomRoom].Height;
                 int corridorEndY = rooms[topRoom].GridY;
 
+                // Adjust corridor to ensure it doesn't extend into rooms
+                corridorStartY = Mathf.Max(corridorStartY, rooms[bottomRoom].GridY + rooms[bottomRoom].Height);
+                corridorEndY = Mathf.Min(corridorEndY, rooms[topRoom].GridY);
+
+                // Validate corridor has positive length
+                if (corridorStartY >= corridorEndY)
+                {
+                    Debug.LogWarning($"Corridor length is invalid ({corridorEndY - corridorStartY}) between Room {bottomRoom} and Room {topRoom}. Skipping.");
+                    return null;
+                }
+
                 int roomABottom = rooms[bottomRoom].GridX;
                 int roomATop = rooms[bottomRoom].GridX + rooms[bottomRoom].Width;
                 int roomBBottom = rooms[topRoom].GridX;
@@ -356,16 +363,17 @@ namespace Dungeon
 
                 int corridorX = (roomABottom + roomATop + roomBBottom + roomBTop) / 4;
 
-                Vector2 bottomLeft = new Vector2(corridorX - CorridorWidth / 2, corridorStartY);
-                Vector2 topRight = new Vector2(corridorX + CorridorWidth / 2, corridorEndY);
+                int corridorStartX = corridorX - CorridorWidth / 2;
+                Vector2 bottomLeft = new Vector2(corridorStartX, corridorStartY);
+                Vector2 topRight = new Vector2(corridorStartX + CorridorWidth, corridorEndY);
 
-                var corridor = new CorridorData(bottomLeft, topRight, CorridorWidth, corridorEndY - corridorStartY, bottomRoom, topRoom);
+                var corridor = new CorridorData(bottomLeft, topRight, CorridorWidth, corridorEndY - corridorStartY, false, bottomRoom, topRoom);
 
                 for (int x = 0; x < CorridorWidth; x++)
-                {
-                    corridor.DoorPositions.Add(new Vector3Int(corridorX - CorridorWidth / 2 + x, corridorStartY, 0));
-                    corridor.DoorPositions.Add(new Vector3Int(corridorX - CorridorWidth / 2 + x, corridorEndY - 1, 0));
-                }
+                 {
+                     corridor.DoorPositions.Add(new Vector3Int(corridorStartX + x, corridorStartY, 0));      // Bottom room north wall
+                     corridor.DoorPositions.Add(new Vector3Int(corridorStartX + x, corridorEndY - 1, 0));  // Top room south wall
+                   }
 
                 return corridor;
             }
@@ -399,6 +407,6 @@ namespace Dungeon
         {
             if (_debugLog == true)
                 Debug.Log(message);
-        }
+        }   
     }
 }

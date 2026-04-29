@@ -28,22 +28,15 @@ namespace Dungeon
             if (data == null || data.Rooms == null || data.Corridors == null)
                 throw new NullReferenceException($"DungeonData = [{data}], Rooms = [{data.Rooms}], Corridors = [{data.Corridors}]");
 
-            Debug.Log($"[DungeonVisualizer] Generating {data.Rooms.Count} rooms, {data.Corridors?.Count ?? 0} corridors");
-
             foreach (var room in data.Rooms)
             {
                 RenderRoom(room);
-                Debug.Log($"[Room {room}] GridX={room.GridX}, GridY={room.GridY}, Size={room.Width}x{room.Height}, " +
-                         $"Corridors Count=[{room.ConnectedCorridors.Count}]");
             }
 
             foreach (var corridor in data.Corridors)
             {
                 RenderCorridor(corridor);
                 SubscribeForCorridorsEvents(corridor);
-                Debug.Log($"[Corridor {corridor}] From=({corridor.PointFrom.x:F1},{corridor.PointFrom.y:F1}) " +
-                    $"To=({corridor.PointTo.x:F1},{corridor.PointTo.y:F1}) Width={corridor.Width} Length={corridor.Length} " +
-                    $"Doors={corridor.DoorPositions?.Count ?? 0}");
             }
 
             Debug.Log("[DungeonVisualizer] Generation complete");
@@ -123,8 +116,9 @@ namespace Dungeon
 
         private void RenderCorridorWalls(CorridorData corridor, int minX, int maxX, int minY, int maxY)
         {
-            if (maxX - minX > maxY - minY)
+            if (corridor.IsHorizontal)
             {
+                // Horizontal corridor: render north and south walls
                 for (int x = minX; x < maxX; x++)
                 {
                     _wallTilemap.SetTile(new Vector3Int(x, minY - 1, 0), _wallTile);
@@ -133,6 +127,7 @@ namespace Dungeon
             }
             else
             {
+                // Vertical corridor: render west and east walls
                 for (int y = minY; y < maxY; y++)
                 {
                     _wallTilemap.SetTile(new Vector3Int(minX - 1, y, 0), _wallTile);
