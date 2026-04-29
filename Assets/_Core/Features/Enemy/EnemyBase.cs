@@ -14,7 +14,11 @@ namespace Enemy
         Attacking
     }
 
-    public class EnemyBase : MonoBehaviour
+    public interface IEnemy
+    {
+    }
+
+    public class EnemyBase : MonoBehaviour, IEnemy
     {
         [field: SerializeField] public PlayerHealth Health { get; private set; }
 
@@ -38,7 +42,7 @@ namespace Enemy
             _movement = _simpleMovement;
             _attack = _simpleAttack;
 
-            Health.OnDeath.Subscribe(_ => DestroyEnemy());
+            Health?.OnDeath.Subscribe(_ => DestroyEnemy());
             _behaviourLoopRoutine = BehaviourLoop();
             StartCoroutine(_behaviourLoopRoutine);
         }

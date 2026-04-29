@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Linq;
 using Dungeon;
+using Enemy;
 using NUnit.Framework;
 using Unity.Properties;
 using UnityEngine;
@@ -14,43 +15,40 @@ public class DungeonGenerationTest
     {
         var obj = new GameObject("Dungeon Generator Test");
         var dg = obj.AddComponent<DungeonGenerator>();
+        dg.ZonesCount = 10;
         yield return null;
 
         dg.Generate();
+        var rooms = dg.Data.Rooms;
+        var firstRoom = rooms[0];
+
         Assert.That(dg.Data, Is.Not.Null);
-        Assert.That(dg.Data.Rooms, Is.Not.Null);
-        Assert.That(dg.Data.Rooms.Count, Is.EqualTo(dg.ZonesCount));
-        Assert.That(dg.Data.Rooms.SelectMany(r => r.ConnectedCorridors), Is.All.Matches<CorridorData>(c => c.IsOpened == false));
-        
-        dg.Data.OpenRoomCorridors(0);
-        Assert.That(dg.Data.Rooms[0].ConnectedCorridors, Is.All.Matches<CorridorData>(c => c.IsOpened == true));
-        Assert.That(dg.Data.Corridors, Has.Exactly(dg.Data.Rooms[0].ConnectedCorridors.Count).Matches<CorridorData>(c => c.IsOpened));
+        Assert.That(rooms, Is.Not.Null);
+        Assert.That(rooms.Count, Is.EqualTo(dg.ZonesCount));
+        Assert.That(rooms.SelectMany(r => r.ConnectedCorridors), Is.All.Matches<CorridorData>(c => c.IsOpened));
 
-        for (int i = 0; i < dg.Data.Rooms.Count; i++)
-            dg.Data.OpenRoomCorridors(i);
+        // Single room doors Close
+        var enemy = new TestEnemy();
+        firstRoom.AddEnemy(enemy);
+        Assert.That(firstRoom.ConnectedCorridors, Is.All.Matches<CorridorData>(c => c.IsOpened == false));
+        Assert.That(dg.Data.Corridors, Has.Exactly(firstRoom.ConnectedCorridors.Count).Matches<CorridorData>(c => !c.IsOpened));
 
-        Assert.That(dg.Data.Corridors, Is.All.Matches<CorridorData>(c => c.IsOpened == true));
-    }
+        // All doors Close test
+        for (int i = 1; i < rooms.Count; i++)
+            rooms[i].AddEnemy(enemy);
 
-    public class TestVisitor : MonoBehaviour, IVisitor
-    {
-        public bool Visited { get; private set; }
+        Assert.That(dg.Data.Corridors, Is.All.Matches<CorridorData>(c => c.IsOpened == false));
 
-        void IVisitor.Visited<T>(T visitor)
-        {
-            Visited = true;
-        }
-    }
-}
+        // Single room doors Open
+        for (int i = 0; i < firstRoom.EnemiesInside.Count; i++)
+            firstRoom.RemoveEnemy(firstRoom.EnemiesInside[i]);
 
-internal interface IVisitor
-{
-    void Visited<T>(T visitor) where T : Component, IVisitable
-    {
-
+        Assert.That(firstRoom.ConnectedCorridors, Is.All.Matches<CorridorData>(c => c.IsOpened));
+        Assert.That(dg.Data.Corridors, Has.Exactly(firstRoom.ConnectedCorridors.Count).Matches<CorridorData>(c => c.IsOpened));
     }
 }
 
-internal interface IVisitable
+public class TestEnemy : IEnemy
 {
+
 }
