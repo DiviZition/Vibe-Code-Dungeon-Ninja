@@ -53370,8 +53370,8 @@ GameObject:
   - component: {fileID: 1798257934}
   - component: {fileID: 1798257926}
   - component: {fileID: 1798257929}
-  - component: {fileID: 1798257932}
   - component: {fileID: 1798257928}
+  - component: {fileID: 1798257932}
   - component: {fileID: 1798257930}
   - component: {fileID: 1798257931}
   m_Layer: 0
@@ -53436,7 +53436,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb13c06722af48b409093829423a0722, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NinjaRunner.Player.PlayerVisual
-  _spriteRenderer: {fileID: 478205853}
+  _visualTransform: {fileID: 478205852}
   _rotationDuration: 0.25
 --- !u!114 &1798257929
 MonoBehaviour:
