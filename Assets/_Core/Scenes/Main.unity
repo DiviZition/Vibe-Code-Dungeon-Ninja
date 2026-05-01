@@ -53263,7 +53263,7 @@ MonoBehaviour:
   _wallTilemap: {fileID: 305935163}
   _floorTile: {fileID: 11400000, guid: df6aa9a21a7dd7949a3322f3d12225b8, type: 2}
   _wallTile: {fileID: 11400000, guid: 83211a43990736149b73fd67301bbf36, type: 2}
-  _doorTile: {fileID: 11400000, guid: 3e0e7eac0673d6144ac4f782cdb1eb3e, type: 2}
+  _doorTile: {fileID: 0}
 --- !u!114 &1666541490
 MonoBehaviour:
   m_ObjectHideFlags: 0

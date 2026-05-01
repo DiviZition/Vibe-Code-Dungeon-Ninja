@@ -48,9 +48,6 @@ MonoBehaviour:
   <Transform>k__BackingField: {fileID: 6205066551758546764}
   _gameObject: {fileID: 3240460268703550413}
   _flySpeed: 5
-  _material: {fileID: 2100000, guid: cb8d7cb7cf8c41644ab2778cebc18a75, type: 2}
-  _blendFirst: {r: 0.3616291, g: 0.8867924, b: 0.26352793, a: 1}
-  _blendSecond: {r: 0.3159923, g: 0.040094346, b: 0.5, a: 1}
 --- !u!1 &5099637067754302994
 GameObject:
   m_ObjectHideFlags: 0
@@ -117,7 +114,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: cb8d7cb7cf8c41644ab2778cebc18a75, type: 2}
+  - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

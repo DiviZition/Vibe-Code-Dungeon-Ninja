@@ -129,10 +129,8 @@ GameObject:
   m_Component:
   - component: {fileID: 60303392}
   - component: {fileID: 60303396}
-  - component: {fileID: 60303393}
   - component: {fileID: 60303395}
   - component: {fileID: 60303394}
-  - component: {fileID: 60303397}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -157,62 +155,6 @@ Transform:
   - {fileID: 644790366}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &60303393
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 60303389}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: de47a422301269f49a40acd84e282019, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Enemy.Enemy
-  <Health>k__BackingField: {fileID: 60303395}
-  <BehaviorController>k__BackingField: {fileID: 60303397}
-  _movement:
-    _moveDuration: 1
-    _moveDistance: {x: 2, y: 5}
-    _transform: {fileID: 60303392}
-  _attack:
-    _transform: {fileID: 60303392}
-    _chargeTime: 0.7
-    _maxAttackLength: 1
-    _attackRadius: 2
-    baseDamage: 10
-    _attackVisual: {fileID: 644790365}
-    _visualSizeMultiplyer: 1.1
-    _attackChargeVisualization:
-      serializedVersion: 2
-      key0: {r: 1, g: 0, b: 0, a: 0}
-      key1: {r: 1, g: 0, b: 0, a: 1}
-      key2: {r: 1, g: 1, b: 1, a: 1}
-      key3: {r: 1, g: 1, b: 1, a: 0}
-      key4: {r: 1, g: 0, b: 0, a: 0}
-      key5: {r: 1, g: 0, b: 0, a: 0}
-      key6: {r: 0, g: 0, b: 0, a: 0}
-      key7: {r: 0, g: 0, b: 0, a: 0}
-      ctime0: 0
-      ctime1: 46838
-      ctime2: 50501
-      ctime3: 57632
-      ctime4: 60716
-      ctime5: 65535
-      ctime6: 0
-      ctime7: 0
-      atime0: 0
-      atime1: 46260
-      atime2: 57440
-      atime3: 65535
-      atime4: 0
-      atime5: 0
-      atime6: 0
-      atime7: 0
-      m_Mode: 0
-      m_ColorSpace: 0
-      m_NumColorKeys: 6
-      m_NumAlphaKeys: 4
 --- !u!114 &60303394
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -293,20 +235,6 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.5
---- !u!114 &60303397
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 60303389}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 842097ae35606c74cbebee243aa2e463, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Enemy.EnemyBehaviorController
-  _waitBeforeMove: 1
-  _waitBeforeAttack: 1
 --- !u!1 &76778644
 GameObject:
   m_ObjectHideFlags: 0
