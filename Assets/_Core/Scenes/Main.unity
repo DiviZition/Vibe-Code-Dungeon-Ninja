@@ -131,7 +131,6 @@ GameObject:
   - component: {fileID: 60303396}
   - component: {fileID: 60303398}
   - component: {fileID: 60303399}
-  - component: {fileID: 60303393}
   - component: {fileID: 60303395}
   - component: {fileID: 60303394}
   m_Layer: 7
@@ -158,18 +157,6 @@ Transform:
   - {fileID: 644790366}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &60303393
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 60303389}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: de47a422301269f49a40acd84e282019, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Enemy.Enemy
 --- !u!114 &60303394
 MonoBehaviour:
   m_ObjectHideFlags: 0
