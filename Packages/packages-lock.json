@@ -51,17 +51,6 @@
         "com.google.external-dependency-manager": "1.2.186"
       }
     },
-    "com.ivanmurzak.unity.mcp": {
-      "version": "0.66.1",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.modules.uielements": "1.0.0",
-        "com.unity.test-framework": "1.1.33",
-        "extensions.unity.playerprefsex": "2.1.3"
-      },
-      "url": "https://package.openupm.com"
-    },
     "com.singularitygroup.hotreload": {
       "version": "file:com.singularitygroup.hotreload",
       "depth": 0,
@@ -485,13 +474,6 @@
         "com.unity.modules.imageconversion": "1.0.0"
       },
       "url": "https://packages.unity.com"
-    },
-    "extensions.unity.playerprefsex": {
-      "version": "2.1.3",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://package.openupm.com"
     },
     "net.tnrd.nsubstitute": {
       "version": "https://github.com/Thundernerd/Unity3D-NSubstitute.git",
