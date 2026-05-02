@@ -6,20 +6,20 @@ namespace Dungeon
 {
     public class DungeonManager : MonoBehaviour
     {
-        [SerializeField] private DungeonGenerator _generator;
         [SerializeField] private DungeonVisualizer _visualizer;
+        [field: SerializeField] public DungeonGenerator Generator;
 
         IDisposable _roomEnemiesAppearanceEvents;
 
         [ContextMenu("Generate Dungeon")]
         public void GenerateDungeon()
         {
-            _generator.Generate();
-            _visualizer.Visualize(_generator.Data);
+            Generator.Generate();
+            _visualizer.Visualize(Generator.Data);
         }
 
-        public void OpenRoom(int roomIndex) => _generator.Data.OpenRoomCorridors(roomIndex);
-        public void CloseRoom(int roomIndex) => _generator.Data.CloseRoomCorridors(roomIndex);
+        public void OpenRoom(int roomIndex) => Generator.Data.OpenRoomCorridors(roomIndex);
+        public void CloseRoom(int roomIndex) => Generator.Data.CloseRoomCorridors(roomIndex);
 
         private void OnDestroy()
         {

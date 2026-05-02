@@ -60,6 +60,7 @@ namespace Dungeon
             if (EnemiesInside.Contains(enemyToRemove) == true)
                 EnemiesInside.Remove(enemyToRemove);
 
+            Debug.Log($"Enemies left: {EnemiesInside.Count}");
             if (EnemiesInside.Count <= 0)
                 OnAllEnemiesCleared.OnNext(this);
         }
@@ -147,6 +148,9 @@ namespace Dungeon
                 _roomsOpenCloseEvents = Disposable.Combine(openEvent, closeEvent);
             }
         }
+
+        public void AddEnemyToRoom(int roomIndex, IEnemy enemy) => Rooms[roomIndex].AddEnemy(enemy);
+        public void RemoveEnemyFromRoom(int roomIndex, IEnemy enemy) => Rooms[roomIndex].RemoveEnemy(enemy);
 
         public void CloseRoomCorridors(int roomIndex) => CloseRoomCorridors(Rooms[roomIndex]);
         public void CloseRoomCorridors(RoomData roomData) => SetRoomIsOpened(roomData, newIsOpened: false);
