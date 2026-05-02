@@ -1,6 +1,4 @@
 using R3;
-using Sirenix.OdinInspector;
-using Sirenix.Serialization;
 
 public interface IDamageable
 {
@@ -8,8 +6,8 @@ public interface IDamageable
     public float MaxHealth { get; }
     public bool IsDead { get; }
     public Subject<Unit> OnDeath { get; }
-    public Subject<float> OnTakeDamage { get; }
     public Subject<float> OnHealed { get; }
+    public Subject<float> OnDamaged { get; }
     void TakeDamage(float amount);
     void Heal(float amount);
 }

@@ -35,6 +35,12 @@ namespace Enemy
             EnableAttackVisual(_attackPoint);
         }
 
+        public void StopAttack()
+        {
+            IsFinished = true;
+            DisableAttackVisual();
+        }
+
         public void UpdateByTime(float deltaTime)
         {
             if (IsFinished || deltaTime == 0)
@@ -49,27 +55,6 @@ namespace Enemy
                 DisableAttackVisual();
                 IsFinished = true;
             }
-        }
-
-        public async UniTask PerformAttack(CancellationToken cancellationToken)
-        {
-            Vector2 attackPoint = GetAttackPoint();
-            EnableAttackVisual(attackPoint);
-
-            while (_chargeProgress < 1f)
-            {
-                SetAttackVisualProgress(_chargeProgress);
-                //_chargeProgress += _timeData.DeltaTime / _chargeTime;
-
-                if (cancellationToken.IsCancellationRequested)
-                    return;
-                
-                await UniTask.Yield(PlayerLoopTiming.Update);
-            }
-
-            MakeHit(attackPoint);
-            DisableAttackVisual();
-            _chargeProgress = 0f;
         }
 
         private void MakeHit(Vector2 attackPoint)

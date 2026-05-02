@@ -27,7 +27,7 @@ public class DamageableVisual : SerializedMonoBehaviour
         _originalColor = _spriteRenderer.color;
         var d = Disposable.CreateBuilder();
 
-        _damageable.OnTakeDamage
+        _damageable.OnDamaged
             .Subscribe(_ => PlayHitEffect())
             .AddTo(ref d);
 

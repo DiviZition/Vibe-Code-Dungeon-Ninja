@@ -8,26 +8,23 @@ namespace Player
     public class PlayerHealth : MonoBehaviour, IDamageable
     {
         [Header("Health Settings")]
-        [SerializeField] private float _maxHealth = 100f;
-        [SerializeField] private float _currentHealth = 100f;
+        [field: SerializeField] public float MaxHealth { get; private set; } = 100f;
 
-        public float CurrentHealth => _currentHealth;
-        public float MaxHealth => _maxHealth;
-
-        public bool IsDead => _currentHealth <= 0f;
+        private float _damageTaken = 0;
+        public float CurrentHealth => MaxHealth - _damageTaken;
+        public bool IsDead => _damageTaken >= MaxHealth;
 
         public Subject<Unit> OnDeath { get; private set; } = new Subject<Unit>();
-        public Subject<float> OnTakeDamage { get; private set; } = new Subject<float>();
+        public Subject<float> OnDamaged { get; private set; } = new Subject<float>();
         public Subject<float> OnHealed { get; private set; } = new Subject<float>();
 
         [Button]
         public void TakeDamage(float amount)
         {
-            if (IsDead) return;
+            if (IsDead || amount == 0) return;
 
-            _currentHealth -= amount;
-            _currentHealth = Mathf.Max(_currentHealth, 0f);
-            OnTakeDamage.OnNext(amount);
+            _damageTaken = Mathf.Clamp(Mathf.Abs(_damageTaken) + amount, 0, MaxHealth);
+            OnDamaged.OnNext(CurrentHealth);
 
             if (IsDead)
                 OnDeath.OnNext(Unit.Default);
@@ -36,16 +33,16 @@ namespace Player
         [Button]
         public void Heal(float amount)
         {
-            if (IsDead) return;
+            if (IsDead || amount <= 0) return;
 
-            _currentHealth += amount;
-            _currentHealth = Mathf.Min(_currentHealth, _maxHealth);
-            OnHealed.OnNext(amount);
+            _damageTaken = Mathf.Clamp(Mathf.Abs(_damageTaken) - amount, 0, MaxHealth);
+            OnHealed.OnNext(CurrentHealth);
         }
 
         public void ResetHealth()
         {
-            _currentHealth = _maxHealth;
+            _damageTaken = 0;
+            OnHealed?.OnNext(CurrentHealth);
         }
     }
 }

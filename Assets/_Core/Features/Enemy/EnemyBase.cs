@@ -71,6 +71,7 @@ namespace Enemy
 
         private void DestroyEnemy()
         {
+            _simpleAttack.StopAttack();
             StopCoroutine(_behaviourLoopRoutine);
             Observable.Timer(System.TimeSpan.FromSeconds(1f)).Subscribe(_ => Destroy(gameObject));
         }
