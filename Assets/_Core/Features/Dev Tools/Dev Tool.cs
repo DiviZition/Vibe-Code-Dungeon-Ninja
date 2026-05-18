@@ -23,4 +23,9 @@ public class DevTool : MonoBehaviour
     private void DoAction()
     {
     }
+
+    private void EmptyMethod()
+    {
+
+    }
 }
