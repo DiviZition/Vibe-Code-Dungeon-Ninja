@@ -9,6 +9,7 @@ namespace Dungeon
     public enum RoomType
     {
         Normal,
+        Start,
         Boss,
     }
 
