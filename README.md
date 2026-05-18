@@ -95,43 +95,51 @@ Safe area between dungeon runs:
 
 ## Development Phases
 
-### Phase 1: Core Movement
+### Phase 1: Player
 - [x] Player always-running movement
 - [x] Direction change input
 - [x] Basic collision
+- [x] Damage to enemies on contact
 
-### Phase 2: Combat System
-- [x] Contact damage on enemies
-- [ ] Enemy movement
-- [ ] Enemy attacks
-- [ ] Enemy hit feedback
-- [ ] Freeze on player hit
-- [ ] Direction selection after hit
-
-### Phase 3: Room System
+### Phase 2: Dungeon Generation
+- [x] Grid-based tile system
+- [x] Procedural room placement
 - [ ] Multiple room types
-- [ ] Door locking mechanic
-- [ ] Enemy spawn system
-- [ ] Room clearing detection
+- [ ] Start and finish room defining
 
-### Phase 4: Dungeon Generation
-- [ ] Grid-based tile system
-- [ ] Procedural room placement
-- [ ] Enemy waves
+### Phase 3: Enemy System
+- [x] Enemy movement
+- [x] Enemy attacks
+- [ ] Enemy stunned on damage taken
+
+### Phase 4: Dungeon Behavior
+- [x] Door locking & unlocking mechanic
+- [ ] Enemy spawn system
 - [ ] Treasure spawning
 
-### Phase 5: Boss Fights
-- [ ] Boss room generation
+### Phase 5: Game Loop Management
+- [ ] Player appears at the Town
+- [ ] (Optional) Player buy/sell stuff and upgrades
+- [ ] Player Enters the dungeon
+- [x] Dungeon spawns
+- [ ] Enemy spawns in rooms
+- [ ] Treasure spawns in rooms
+- [ ] Player spawns at the starting room
+- [x] Player kills enemies -> room doors unlock
+- [ ] Player finds the boss room and defeats them
+- [ ] Player Leave the Dungeon for the Town
+
+### Phase 6: Boss Fights
 - [ ] Boss enemy AI
 - [ ] Boss rewards
 
-### Phase 6: Town Hub
+### Phase 7: Town Hub
 - [ ] Town scene
 - [ ] Upgrade shops
 - [ ] Money/economy system
 - [ ] Run completion screen
 
-### Phase 7: Polish
+### Phase 8: Polish
 - [ ] Skills and abilities
 - [ ] More enemy types
 - [ ] Visual effects
