@@ -49,14 +49,12 @@ public class DamageableVisual : SerializedMonoBehaviour
     {
         _spriteRenderer.DOKill();
         _spriteRenderer.color = _hitColor;
-        _spriteRenderer.DOColor(_originalColor, _hitDuration)
-            .SetEase(Ease.OutQuad);
+        _spriteRenderer.DOColor(_originalColor, _hitDuration).SetEase(Ease.OutQuad);
     }
 
     private void PlayDeathEffect()
     {
         _spriteRenderer.DOKill();
-        _spriteRenderer.DOColor(_deathColor, _deathDuration)
-            .SetEase(Ease.InQuad);
+        _spriteRenderer.DOColor(_deathColor, _deathDuration).SetEase(Ease.InQuad);
     }
 }

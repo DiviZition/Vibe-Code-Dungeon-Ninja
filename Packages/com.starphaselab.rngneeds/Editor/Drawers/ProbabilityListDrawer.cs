@@ -333,7 +333,7 @@ namespace RNGNeeds.Editor
             
             m_StripeBorderRect.Set(position.x, stripeRectPosition + 2f, position.width, cpd.DrawerSettings.StripeHeightPixels);
             m_StripeRect.Set(m_StripeBorderRect.x + 2f, m_StripeBorderRect.y + 4f, position.width - 4f, cpd.DrawerSettings.StripeHeightPixels - 8f);
-
+            
             // Sections
             m_ThemeSectionButtonRect.Set(m_SeparatorCRect.xMax, optionsYPosition, PLDrawerTheme.SectionButtonOn.CalcSize(themeSectionButtonContent).x + 12f, 20f);
             m_PickSectionButtonRect.Set(m_ThemeSectionButtonRect.xMax + 6f, optionsYPosition, PLDrawerTheme.SectionButtonOn.CalcSize(pickSectionButtonContent).x + 18f, 20f);
@@ -424,7 +424,6 @@ namespace RNGNeeds.Editor
                     }
                     
                 }
-
                 
                 if (GUI.Button(m_ShowWeightsButtonRect, PLDrawerContents.ShowWeightsButton, cpd.DrawerSettings.ShowWeights ? 
                         cpd.p_WeightsPriority.boolValue ? PLDrawerTheme.WeightsPriorityButtonOn : PLDrawerTheme.ShowWeightsButtonOn : 
@@ -790,7 +789,7 @@ namespace RNGNeeds.Editor
             // Prevent state lock when mouse leaves inspector window while modifying
             if (cpd.ModifierState == ModifierState.Modifying && (m_CurrentEvent.mousePosition.x < m_StripeRect.xMin || m_CurrentEvent.mousePosition.x > m_StripeRect.xMax))
                 cpd.ModifierState = ModifierState.Unselected;
-
+            
             switch (m_Settings.InspectorRefreshMode)
             {
                 case InspectorRefreshMode.Responsive:

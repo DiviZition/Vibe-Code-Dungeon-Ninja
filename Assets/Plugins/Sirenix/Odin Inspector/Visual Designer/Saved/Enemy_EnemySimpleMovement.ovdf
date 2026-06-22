@@ -1,8 +1,0 @@
-OVDF v1.1
-Enemy.EnemySimpleMovement, Assembly-CSharp
-
-# _moveDistance
-+ [Sirenix.OdinInspector.MinMaxSliderAttribute]
-	MinValue = 1
-	MaxValue = 4
-	ShowFields = False

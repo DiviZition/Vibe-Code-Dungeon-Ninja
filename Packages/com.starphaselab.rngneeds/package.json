@@ -1,6 +1,6 @@
 {
   "name": "com.starphaselab.rngneeds",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "displayName": "RNGNeeds",
   "description": "The Ultimate Probability Distribution Plugin for Unity.\n\nRNGNeeds is a plugin that lets you effortlessly design and manage probability lists for any value, type, or custom object directly within the Unity Inspector.",
   "unity": "2020.2",
@@ -10,8 +10,8 @@
   "licensesUrl": "https://unity.com/legal/as-terms",
   "author": {
     "name": "Starphase Lab",
-    "email": "lab@starphase.sk",
-    "url": "https://www.starphase.sk"
+    "url": "https://www.starphase.sk",
+    "email": "lab@starphase.sk"
   },
   "samples": [
     {
@@ -23,6 +23,11 @@
       "displayName": "Intermediate Samples",
       "description": "Discover how Probability Lists can collaborate to solve your RNG needs.",
       "path": "Samples~/02 Intermediate Samples"
+    },
+    {
+      "displayName": "Advanced Samples",
+      "description": "Explore more complete gameplay patterns and advanced RNGNeeds workflows.",
+      "path": "Samples~/03 Advanced Samples"
     }
   ],
   "dependencies": {

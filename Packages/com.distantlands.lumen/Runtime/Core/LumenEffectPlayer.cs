@@ -7,7 +7,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
+
+using Random = UnityEngine.Random;
 
 namespace DistantLands.Lumen
 {
@@ -80,9 +83,12 @@ namespace DistantLands.Lumen
         [ColorUsage(true, true)]
         public Color color = Color.white;
 
-        float controlledBrightness = 1;
-        float controlledScale = 1;
-        Color controlledColor = Color.white;
+        internal LumenFloatFade brightnessFade;
+        internal LumenFloatFade scaleFade;
+        internal LumenColorFade colorFade;
+        internal float controlledBrightness = 1;
+        internal float controlledScale = 1;
+        internal Color controlledColor = Color.white;
 
         /// <summary>
         /// Should the layers be displayed in the hierarchy? 
@@ -180,15 +186,33 @@ namespace DistantLands.Lumen
         private int totalLayerCount;
 
         bool isQuitting = false;
-        Action StartQuit => () => isQuitting = true;
+
+        private int entityIdHash;
+        private LumenManager effectManager;
+
+
+        private void Awake()
+        {
+#if UNITY_6000_4_OR_NEWER
+            entityIdHash = gameObject.GetEntityId().GetHashCode();
+#else
+            entityIdHash = gameObject.GetInstanceID().GetHashCode();
+#endif
+        }
+
+        private void HandleStartQuit() => isQuitting = true;
 
         /// <summary>
         /// This function is called when the object becomes enabled and active.
         /// </summary>
         void OnEnable()
         {
+            effectManager = LumenManager.Instance;
+
             if (sharedBlock == null)
                 sharedBlock = new MaterialPropertyBlock();
+
+            ClearEffect();
 
             if (Application.isPlaying)
             {
@@ -218,13 +242,14 @@ namespace DistantLands.Lumen
             }
             else
             {
-                ClearEffect();
                 RedoEffect();
             }
             LumenUtility.OnRedoEntireEffect += RedoEffect;
-            Application.quitting += StartQuit.Invoke;
+            Application.quitting += HandleStartQuit;
 
             isQuitting = false;
+
+            effectManager.AddEffectPlayer(this);
         }
 
         /// <summary>
@@ -238,17 +263,18 @@ namespace DistantLands.Lumen
                 {
                     case DeinitializationBehavior.Immediate:
                         ClearEffect();
+                        effectManager.RemoveEffectPlayer(this);
                         break;
                     case DeinitializationBehavior.FadeBrightnessToZero:
-                        ClearEffect(fadingTime);
+                        DestroyEffect(fadingTime);
                         FadeBrightness(0, fadingTime);
                         break;
                     case DeinitializationBehavior.FadeScaleToZero:
-                        ClearEffect(fadingTime);
+                        DestroyEffect(fadingTime);
                         FadeScale(0, fadingTime);
                         break;
                     case DeinitializationBehavior.FadeColorToBlack:
-                        ClearEffect(fadingTime);
+                        DestroyEffect(fadingTime);
                         FadeColor(Color.black, fadingTime);
                         break;
                     default:
@@ -258,125 +284,40 @@ namespace DistantLands.Lumen
             else
             {
                 ClearEffect();
+                effectManager.RemoveEffectPlayer(this);
             }
             LumenUtility.OnRedoEntireEffect -= RedoEffect;
-            Application.quitting -= StartQuit.Invoke;
+            Application.quitting -= HandleStartQuit;
         }
-
-        /// <summary>
-        /// LateUpdate is called every frame, if the Behaviour is enabled.
-        /// It is called after all Update functions have been called.
-        /// </summary>
-        void LateUpdate()
-        {
-            if (updateFrequency == UpdateFrequency.Always)
-                RedoEffect();
-        }
-
-        public void RedoEffectFromDelegate()
-        {
-            if (updateFrequency != UpdateFrequency.OnChanges)
-                return;
-
-            RedoEffect();
-        }
-
-        private Coroutine fadeBrightnessRoutine;
-        private Coroutine fadeScaleRoutine;
-        private Coroutine fadeColorRoutine;
 
         /// <summary>
         /// Fades the effect linearly to a set brightness
         /// </summary>
-        /// <param name="brightness">The new target brightness</param>
+        /// <param name="targetBrightness">The new target brightness</param>
         /// <param name="time">The amount of time that the fade takes to fully complete.</param>
-        public void FadeBrightness(float brightness, float time)
+        public void FadeBrightness(float targetBrightness, float time)
         {
-            if (fadeBrightnessRoutine != null)
-                StopCoroutine(fadeBrightnessRoutine);
-
-            if (!isQuitting && gameObject.activeInHierarchy)
-                fadeBrightnessRoutine = StartCoroutine(FadeBrightnessRoutine(brightness, time));
-        }
-
-        IEnumerator FadeBrightnessRoutine(float brightness, float time)
-        {
-            float t = 0;
-            float originalValue = controlledBrightness;
-            while (t < time)
-            {
-                yield return null;
-                controlledBrightness = Mathf.Lerp(originalValue, brightness, t / time);
-                t += Time.deltaTime;
-
-                if (updateFrequency == UpdateFrequency.OnChanges)
-                    RedoEffect();
-
-            }
-
-            controlledBrightness = brightness;
+            brightnessFade.Start(controlledBrightness, targetBrightness, time);
         }
 
         /// <summary>
         /// Fades the effect linearly to a set scale
         /// </summary>
-        /// <param name="scale">The new target scale</param>
+        /// <param name="targetScale">The new target scale</param>
         /// <param name="time">The amount of time that the fade takes to fully complete.</param>
-        public void FadeScale(float scale, float time)
+        public void FadeScale(float targetScale, float time)
         {
-            if (fadeScaleRoutine != null)
-                StopCoroutine(fadeScaleRoutine);
-
-            if (!isQuitting && gameObject.activeInHierarchy)
-                fadeScaleRoutine = StartCoroutine(FadeScaleRoutine(scale, time));
-        }
-
-        IEnumerator FadeScaleRoutine(float scale, float time)
-        {
-            float t = 0;
-            float originalValue = controlledScale;
-            while (t < time)
-            {
-                yield return null;
-                controlledScale = Mathf.Lerp(originalValue, scale, t / time);
-                t += Time.deltaTime;
-
-                if (updateFrequency == UpdateFrequency.OnChanges)
-                    RedoEffect();
-            }
-
-            controlledScale = scale;
+            scaleFade.Start(controlledScale, targetScale, time);
         }
 
         /// <summary>
         /// Fades the effect linearly to a set color
         /// </summary>
-        /// <param name="color">The new target color</param>
+        /// <param name="targetColor">The new target color</param>
         /// <param name="time">The amount of time that the fade takes to fully complete.</param>
-        public void FadeColor(Color color, float time)
+        public void FadeColor(Color targetColor, float time)
         {
-            if (fadeColorRoutine != null)
-                StopCoroutine(fadeColorRoutine);
-
-            if (!isQuitting && gameObject.activeInHierarchy)
-                fadeColorRoutine = StartCoroutine(FadeColorRoutine(color, time));
-        }
-
-        IEnumerator FadeColorRoutine(Color color, float time)
-        {
-            float t = 0;
-            Color originalValue = controlledColor;
-            while (t < time)
-            {
-                yield return null;
-                controlledColor = Color.Lerp(originalValue, color, t / time);
-                t += Time.deltaTime;
-
-                if (updateFrequency == UpdateFrequency.OnChanges)
-                    RedoEffect();
-            }
-
-            controlledColor = color;
+            colorFade.Start(controlledColor, targetColor, time);
         }
 
         [ContextMenu("Refresh Effect")]
@@ -393,171 +334,152 @@ namespace DistantLands.Lumen
             RedoEffect();
         }
 
-        /// <summary>
-        /// Redraws the effect stack.
-        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RedoEffect()
         {
-            if (!gameObject || !gameObject.scene.IsValid() || gameObject.scene.name == null)
-            {
-                return;
-            }
-            ClearEffect();
+            RedoEffect(true);
+        }
 
-            if (profile == null) { return; }
-            if (profile.layers.Count == 0) { return; }
+        /// <summary>
+        /// Full redraw. Updates meshes, materials, and hierarchy flags.
+        /// </summary>
+        public void RedoEffect(bool fullRedraw = true)
+        {
+            if (!gameObject || !gameObject.scene.IsValid() || profile == null || profile.layers.Count == 0) return;
+
+            if (brightnessFade.isActive) controlledBrightness = brightnessFade.Evaluate();
+            if (scaleFade.isActive) controlledScale = scaleFade.Evaluate();
+            if (colorFade.isActive) controlledColor = colorFade.Evaluate();
 
             totalLayerCount = GetTotalLayerCount(profile);
             UpdateMeshPool();
             int currentMeshIndex = 0;
 
-            void DrawInstancedMesh(LumenEffectLayer layer, Vector3 posOffset, Vector3 rotOffset, Vector3 scaleOffset, Color colorOffset, float brightnessOffset)
-            {
-                if (!layer.active) return;
-
-                if (layer is EffectStackLayer)
-                {
-                    EffectStackLayer effectStack = (EffectStackLayer)layer;
-
-                    if (!effectStack.profile)
-                        return;
-
-                    if (effectStack.profile == profile)
-                        return;
-
-                    foreach (LumenEffectLayer childLayer in effectStack.profile.layers)
-                        DrawInstancedMesh(childLayer, layer.position * scale, layer.rotation, layer.scale * scale, layer.color, layer.brightness);
-
-                    return;
-                }
-
-
-                if (layer.mesh == null) return;
-
-                if (layer.repeat && layer.repeatCount > 0)
-                {
-                    float adjustedCount = Mathf.Max(layer.repeatCount, 1);
-                    System.Random random = new System.Random(layer.repeatSeed);
-
-                    for (int index = 0; index < adjustedCount; index++)
-                    {
-                        InstantiatedLumenLayer currentMesh = instantiatedLumenLayers[currentMeshIndex];
-                        float completionPercentage = 0;
-
-                        switch (layer.repeatDistribution)
-                        {
-                            case LumenEffectLayer.RepeatDistributionStyle.Uniform:
-                                completionPercentage = (float)index / (float)Mathf.Max(adjustedCount - 1, 1);
-                                currentMesh.transform.localPosition = layer.position * scale + layer.repeatPositionSpread * completionPercentage;
-                                currentMesh.transform.localEulerAngles = layer.rotation + layer.repeatRotationSpread * completionPercentage;
-                                currentMesh.transform.localScale = scale * Vector3.Lerp(layer.scale, new Vector3(layer.scale.x * layer.repeatScaleSpread.x, layer.scale.y * layer.repeatScaleSpread.y, layer.scale.z * layer.repeatScaleSpread.z), completionPercentage);
-                                break;
-                            case LumenEffectLayer.RepeatDistributionStyle.Random:
-                                completionPercentage = (float)random.NextDouble();
-                                currentMesh.transform.localPosition = layer.position * scale + layer.repeatPositionSpread * completionPercentage;
-                                currentMesh.transform.localEulerAngles = layer.rotation + layer.repeatRotationSpread * completionPercentage;
-                                currentMesh.transform.localScale = scale * Vector3.Lerp(layer.scale, new Vector3(layer.scale.x * layer.repeatScaleSpread.x, layer.scale.y * layer.repeatScaleSpread.y, layer.scale.z * layer.repeatScaleSpread.z), completionPercentage);
-                                break;
-                            case LumenEffectLayer.RepeatDistributionStyle.Curve:
-                                completionPercentage = layer.repeatCurve.Evaluate(index / Mathf.Max(adjustedCount - 1, 1));
-                                currentMesh.transform.localPosition = layer.position * scale + layer.repeatPositionSpread * completionPercentage;
-                                currentMesh.transform.localEulerAngles = layer.rotation + layer.repeatRotationSpread * completionPercentage;
-                                currentMesh.transform.localScale = scale * Vector3.Lerp(layer.scale, new Vector3(layer.scale.x * layer.repeatScaleSpread.x, layer.scale.y * layer.repeatScaleSpread.y, layer.scale.z * layer.repeatScaleSpread.z), completionPercentage);
-                                break;
-                        }
-
-
-                        float RemappedRandom(float range) { return ((float)random.NextDouble() - 0.5f) * 2f * range; }
-
-                        if (layer.repeatVariation)
-                        {
-                            currentMesh.transform.localPosition += new Vector3(RemappedRandom(layer.repeatPositionVariation.x), RemappedRandom(layer.repeatPositionVariation.y), RemappedRandom(layer.repeatPositionVariation.z));
-                            currentMesh.transform.localEulerAngles += new Vector3(RemappedRandom(layer.repeatRotationVariation.x), RemappedRandom(layer.repeatRotationVariation.y), RemappedRandom(layer.repeatRotationVariation.z));
-                            currentMesh.transform.localScale *= 1f - (float)random.NextDouble() * layer.repeatScaleVariation;
-                        }
-
-                        MeshRenderer renderer = (MeshRenderer)currentMesh.renderer;
-                        currentMesh.transform.gameObject.layer = gameObject.layer;
-                        renderer.sharedMaterial = layer.EffectMaterial;
-                        MeshFilter meshFilter = currentMesh.filter;
-
-                        sharedBlock?.Clear();
-
-                        if (layer is DynamicRayLayer dynamicRay)
-                        {
-                            renderer.bounds = new Bounds(Vector3.zero, new Vector3(dynamicRay.rayLength, dynamicRay.rayLength, dynamicRay.rayLength));
-                            sharedBlock.SetFloat(LumenShaderIDs.AutoAssignSun, autoAssignSun ? 1f : 0f);
-                            sharedBlock.SetFloat(LumenShaderIDs.UseLumenSunScript, useLumenSunScript ? 1f : 0f);
-                            sharedBlock.SetVector(LumenShaderIDs.SunDirection, localSunDirection);
-                        }
-
-
-                        if (layer is LumenLightLayer lightLayer)
-                        {
-                            sharedBlock.SetFloat(LumenShaderIDs.Range, range * lightLayer.range);
-                            currentMesh.transform.localScale = Vector3.one * range * lightLayer.range * 2;
-                        }
-
-                        meshFilter.mesh = layer.mesh;
-                        sharedBlock.SetColor(LumenShaderIDs.Color, color * controlledColor * layer.color * colorOffset * layer.repeatColors.Evaluate(completionPercentage));
-                        sharedBlock.SetFloat(LumenShaderIDs.Brightness, brightness * controlledBrightness * layer.brightness * brightnessOffset * Mathf.Lerp(1, (1 - layer.repeatBrightnessSpread), completionPercentage));
-
-                        layer.DrawLayer(sharedBlock, renderer);
-                        renderer.SetPropertyBlock(sharedBlock);
-                        currentMeshIndex++;
-                    }
-                }
-                else
-                {
-                    InstantiatedLumenLayer currentMesh = instantiatedLumenLayers[currentMeshIndex];
-
-                    currentMesh.transform.localPosition = (layer.position + posOffset) * scale;
-                    currentMesh.transform.localEulerAngles = layer.rotation + rotOffset;
-                    currentMesh.transform.localScale = (new Vector3(layer.scale.x * scaleOffset.x, layer.scale.y * scaleOffset.y, layer.scale.z * scaleOffset.z)) * scale;
-                    if (displayLayersInHierarchy)
-                        currentMesh.transform.gameObject.hideFlags = HideFlags.DontSaveInEditor;
-                    else
-                        currentMesh.transform.gameObject.hideFlags = HideFlags.DontSaveInEditor | HideFlags.HideInHierarchy;
-                    sharedBlock.Clear();
-
-                    currentMesh.transform.gameObject.layer = gameObject.layer;
-                    MeshRenderer renderer = (MeshRenderer)currentMesh.renderer;
-                    renderer.sharedMaterial = layer.EffectMaterial;
-                    MeshFilter meshFilter = currentMesh.filter;
-
-                    sharedBlock.Clear();
-
-                    if (layer is DynamicRayLayer dynamicRay)
-                    {
-                        renderer.bounds = new Bounds(Vector3.zero, new Vector3(dynamicRay.rayLength, dynamicRay.rayLength, dynamicRay.rayLength));
-                        sharedBlock.SetFloat(LumenShaderIDs.AutoAssignSun, autoAssignSun ? 1f : 0f);
-                        sharedBlock.SetFloat(LumenShaderIDs.UseLumenSunScript, useLumenSunScript ? 1f : 0f);
-                        sharedBlock.SetVector(LumenShaderIDs.SunDirection, localSunDirection);
-                    }
-
-                    if (layer is LumenLightLayer lightLayer)
-                    {
-                        sharedBlock.SetFloat(LumenShaderIDs.Range, range * lightLayer.range);
-                        currentMesh.transform.localScale = Vector3.one * range * lightLayer.range * 2;
-                    }
-                    meshFilter.mesh = layer.mesh;
-                    sharedBlock.SetColor(LumenShaderIDs.Color, color * controlledColor * layer.color * colorOffset);
-                    sharedBlock.SetFloat(LumenShaderIDs.Brightness, brightness * controlledBrightness * layer.brightness * brightnessOffset);
-
-                    layer.DrawLayer(sharedBlock, renderer);
-                    renderer.SetPropertyBlock(sharedBlock);
-                    currentMeshIndex++;
-                }
-
-            }
-
-
             foreach (LumenEffectLayer layer in profile.layers)
             {
                 if (layer == null) continue;
-                DrawInstancedMesh(layer, Vector3.zero, Vector3.zero, Vector3.one, Color.white, 1);
+                if (fullRedraw)
+                    DrawInstancedMeshHeavy(layer, Vector3.zero, Vector3.zero, Vector3.one, Color.white, 1, ref currentMeshIndex);
+                else
+                    DrawInstancedMeshLight(layer, Vector3.zero, Vector3.zero, Vector3.one, Color.white, 1, ref currentMeshIndex);
+            }
+        }
+
+        void DrawInstancedMeshHeavy(LumenEffectLayer layer, Vector3 posOffset, Vector3 rotOffset, Vector3 scaleOffset, Color colorOffset, float brightnessOffset, ref int currentMeshIndex)
+        {
+            if (!layer.active) return;
+
+            if (layer is EffectStackLayer effectStack)
+            {
+                if (!effectStack.profile || effectStack.profile == profile) return;
+                foreach (LumenEffectLayer childLayer in effectStack.profile.layers)
+                    DrawInstancedMeshHeavy(childLayer, layer.position * scale, layer.rotation, layer.scale * scale, layer.color, layer.brightness, ref currentMeshIndex);
+                return;
             }
 
+            if (layer.mesh == null) return;
+
+            int loopCount = (layer.repeat && layer.repeatCount > 0) ? (int)Mathf.Max(layer.repeatCount, 1) : 1;
+            Random.State savedState = Random.state;
+            Random.InitState(layer.repeatSeed + entityIdHash);
+
+            for (int i = 0; i < loopCount; i++)
+            {
+                InstantiatedLumenLayer currentLayer = instantiatedLumenLayers[currentMeshIndex];
+                GameObject go = currentLayer.transform.gameObject;
+                MeshRenderer renderer = (MeshRenderer)currentLayer.renderer;
+
+                currentLayer.filter.mesh = layer.mesh;
+                renderer.sharedMaterial = layer.EffectMaterial;
+                go.layer = gameObject.layer;
+                go.hideFlags = displayLayersInHierarchy ? HideFlags.DontSaveInEditor : (HideFlags.DontSaveInEditor | HideFlags.HideInHierarchy);
+
+                if (layer is DynamicRayLayer dynamicRay)
+                    renderer.bounds = new Bounds(Vector3.zero, Vector3.one * dynamicRay.rayLength);
+
+                UpdateLayerProperties(layer, currentLayer, i, loopCount, posOffset, rotOffset, scaleOffset, colorOffset, brightnessOffset);
+                currentMeshIndex++;
+            }
+
+            Random.state = savedState;
+        }
+
+        void DrawInstancedMeshLight(LumenEffectLayer layer, Vector3 posOffset, Vector3 rotOffset, Vector3 scaleOffset, Color colorOffset, float brightnessOffset, ref int currentMeshIndex)
+        {
+            if (!layer.active) return;
+
+            if (layer is EffectStackLayer effectStack)
+            {
+                if (!effectStack.profile || effectStack.profile == profile) return;
+                foreach (LumenEffectLayer childLayer in effectStack.profile.layers)
+                    DrawInstancedMeshLight(childLayer, layer.position * scale, layer.rotation, layer.scale * scale, layer.color, layer.brightness, ref currentMeshIndex);
+                return;
+            }
+
+            if (layer.mesh == null) return;
+
+            int loopCount = (layer.repeat && layer.repeatCount > 0) ? (int)Mathf.Max(layer.repeatCount, 1) : 1;
+            Random.State savedState = Random.state;
+            Random.InitState(layer.repeatSeed + entityIdHash);
+
+            for (int i = 0; i < loopCount; i++)
+            {
+                UpdateLayerProperties(layer, instantiatedLumenLayers[currentMeshIndex], i, loopCount, posOffset, rotOffset, scaleOffset, colorOffset, brightnessOffset);
+                currentMeshIndex++;
+            }
+
+            Random.state = savedState;
+        }
+
+        void UpdateLayerProperties(LumenEffectLayer layer, InstantiatedLumenLayer currentMesh, int index, int totalIndices, Vector3 posOffset, Vector3 rotOffset, Vector3 scaleOffset, Color colorOffset, float brightnessOffset)
+        {
+            Transform t = currentMesh.transform;
+            float completion = (float)index / Mathf.Max(totalIndices - 1, 1);
+
+            if (layer.repeat && layer.repeatCount > 0)
+            {
+                if (layer.repeatDistribution == LumenEffectLayer.RepeatDistributionStyle.Random) completion = Random.value;
+                else if (layer.repeatDistribution == LumenEffectLayer.RepeatDistributionStyle.Curve) completion = layer.repeatCurve.Evaluate(completion);
+
+                t.SetLocalPositionAndRotation(layer.position * scale + layer.repeatPositionSpread * completion, Quaternion.Euler(layer.rotation + layer.repeatRotationSpread * completion));
+                t.localScale = scale * Vector3.Lerp(layer.scale, Vector3.Scale(layer.scale, layer.repeatScaleSpread), completion);
+
+                if (layer.repeatVariation)
+                {
+                    var localPositionOffest = new Vector3((Random.value - 0.5f) * 2 * layer.repeatPositionVariation.x, (Random.value - 0.5f) * 2 * layer.repeatPositionVariation.y, (Random.value - 0.5f) * 2 * layer.repeatPositionVariation.z);
+                    var localEulerAnglesOffset = new Vector3((Random.value - 0.5f) * 2 * layer.repeatRotationVariation.x, (Random.value - 0.5f) * 2 * layer.repeatRotationVariation.y, (Random.value - 0.5f) * 2 * layer.repeatRotationVariation.z);
+                    t.SetLocalPositionAndRotation(t.localPosition + localPositionOffest, Quaternion.Euler(t.localEulerAngles + localEulerAnglesOffset));
+                    t.localScale *= 1f - Random.value * layer.repeatScaleVariation;
+                }
+            }
+            else
+            {
+                t.SetLocalPositionAndRotation((layer.position + posOffset) * scale, Quaternion.Euler(layer.rotation + rotOffset));
+                t.localScale = Vector3.Scale(layer.scale, scaleOffset) * scale;
+            }
+
+            sharedBlock.Clear();
+
+            if (layer is DynamicRayLayer)
+            {
+                sharedBlock.SetFloat(LumenShaderIDs.AutoAssignSun, autoAssignSun ? 1f : 0f);
+                sharedBlock.SetFloat(LumenShaderIDs.UseLumenSunScript, useLumenSunScript ? 1f : 0f);
+                sharedBlock.SetVector(LumenShaderIDs.SunDirection, localSunDirection);
+            }
+            else if (layer is LumenLightLayer lightLayer)
+            {
+                sharedBlock.SetFloat(LumenShaderIDs.Range, range * lightLayer.range);
+                t.localScale = Vector3.one * range * lightLayer.range * 2;
+            }
+
+            float repeatBright = layer.repeat ? Mathf.Lerp(1, (1 - layer.repeatBrightnessSpread), completion) : 1;
+            Color repeatCol = layer.repeat ? layer.repeatColors.Evaluate(completion) : Color.white;
+
+            sharedBlock.SetColor(LumenShaderIDs.Color, color * controlledColor * layer.color * colorOffset * repeatCol);
+            sharedBlock.SetFloat(LumenShaderIDs.Brightness, brightness * controlledBrightness * layer.brightness * brightnessOffset * repeatBright);
+
+            layer.DrawLayer(sharedBlock, currentMesh.renderer);
+            currentMesh.renderer.SetPropertyBlock(sharedBlock);
         }
 
         /// <summary>
@@ -567,13 +489,12 @@ namespace DistantLands.Lumen
         {
             int currentLayerCount = 0;
 
-            foreach (LumenEffectLayer layer in profile.layers)
+            foreach (LumenEffectLayer layer in lProfile.layers)
             {
                 if (!layer.active) continue;
 
-                if (layer is EffectStackLayer)
+                if (layer is EffectStackLayer effectStack)
                 {
-                    var effectStack = (EffectStackLayer)layer;
                     if (effectStack.profile && effectStack.profile != lProfile && effectStack.profile != profile)
                         currentLayerCount += GetTotalLayerCount(effectStack.profile);
 
@@ -600,21 +521,27 @@ namespace DistantLands.Lumen
         {
             while (instantiatedLumenLayers.Count > totalLayerCount)
             {
-                Destroy(instantiatedLumenLayers[^1].transform.gameObject);
+                if (Application.isPlaying)
+                    Destroy(instantiatedLumenLayers[^1].transform.gameObject);
+                else
+                    DestroyImmediate(instantiatedLumenLayers[^1].transform.gameObject);
+
                 instantiatedLumenLayers.RemoveAt(instantiatedLumenLayers.Count - 1);
             }
             while (instantiatedLumenLayers.Count < totalLayerCount)
             {
-                GameObject obj = new GameObject($"Layer");
+                GameObject obj = new GameObject("Layer");
+
                 obj.layer = gameObject.layer;
                 if (displayLayersInHierarchy)
                     obj.hideFlags = HideFlags.DontSaveInEditor;
                 else
                     obj.hideFlags = HideFlags.DontSaveInEditor | HideFlags.HideInHierarchy;
-                obj.transform.parent = transform;
-                obj.transform.localPosition = Vector3.zero;
-                obj.transform.localEulerAngles = Vector3.zero;
-                obj.transform.localScale = Vector3.one;
+
+                var objTransform = obj.transform;
+                objTransform.parent = transform;
+                objTransform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+                objTransform.localScale = Vector3.one;
                 MeshRenderer renderer = obj.AddComponent<MeshRenderer>();
                 MeshFilter meshFilter = obj.AddComponent<MeshFilter>();
 
@@ -653,7 +580,7 @@ namespace DistantLands.Lumen
         /// Clears the effect stack
         /// </summary>
         /// <param name="delay">Will clear the effect after a set delay (in seconds)</param>
-        public void ClearEffect(float delay)
+        public void DestroyEffect(float delay)
         {
             if (!isQuitting && gameObject.activeInHierarchy)
                 StartCoroutine(DelayClear(delay));
@@ -663,7 +590,64 @@ namespace DistantLands.Lumen
         {
             yield return new WaitForSeconds(delay);
             ClearEffect();
+            effectManager.RemoveEffectPlayer(this);
         }
 
+    }
+
+    public struct LumenFloatFade
+    {
+        public float start;
+        public float target;
+        public float time;
+        public float elapsed;
+        public bool isActive;
+
+        public void Start(float startValue, float targetValue, float duration)
+        {
+            start = startValue;
+            target = targetValue;
+            time = duration;
+            elapsed = 0;
+            isActive = duration > 0;
+            if (!isActive) start = target;
+        }
+
+        public float Evaluate()
+        {
+            if (!isActive) return target;
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / time);
+            if (t >= 1) isActive = false;
+            return Mathf.Lerp(start, target, t);
+        }
+    }
+
+    public struct LumenColorFade
+    {
+        public Color start;
+        public Color target;
+        public float time;
+        public float elapsed;
+        public bool isActive;
+
+        public void Start(Color startValue, Color targetValue, float duration)
+        {
+            start = startValue;
+            target = targetValue;
+            time = duration;
+            elapsed = 0;
+            isActive = duration > 0;
+            if (!isActive) start = target;
+        }
+
+        public Color Evaluate()
+        {
+            if (!isActive) return target;
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / time);
+            if (t >= 1) isActive = false;
+            return Color.Lerp(start, target, t);
+        }
     }
 }

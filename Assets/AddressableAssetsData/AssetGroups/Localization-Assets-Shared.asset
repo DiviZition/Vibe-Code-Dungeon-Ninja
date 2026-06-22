@@ -15,6 +15,11 @@ MonoBehaviour:
   m_GroupName: Localization-Assets-Shared
   m_GUID: 1cc5921a4556ed24591832d7fcc1ab90
   m_SerializeEntries:
+  - m_GUID: 2acf867e80e5aa449843ae238372a24a
+    m_Address: Assets/_Core/Settings/Localization/Extra Table Shared Data.asset
+    m_ReadOnly: 1
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b0de988782f481d409115bf018cf3f45
     m_Address: Assets/Localization/Table Shared Data.asset
     m_ReadOnly: 1
@@ -26,3 +31,4 @@ MonoBehaviour:
     m_Schemas:
     - {fileID: 11400000, guid: df56792d05c983644a92ae068be674b8, type: 2}
     - {fileID: 11400000, guid: ca10c051ab595be4abc80f9ae43474ef, type: 2}
+    - {fileID: 11400000, guid: 1aa5baa013b053f45b22e2244c1e1e84, type: 2}

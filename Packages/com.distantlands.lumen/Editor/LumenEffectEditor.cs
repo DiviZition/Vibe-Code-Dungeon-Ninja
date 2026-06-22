@@ -476,9 +476,9 @@ namespace DistantLands.Lumen.EditorScripts
             return lumenEffect.layers[index]?.GetType().Name;
         }
 
-        public void DrawHandles(LumenEffectPlayer player)
+        public static void DrawHandles(LumenEffectPlayer player)
         {
-            targetEffect = (LumenEffectProfile)target;
+            LumenEffectProfile targetEffect = player.profile;
 
             if (player == null || targetEffect == null || handleIndex == -1 || handleIndex >= targetEffect.layers.Count)
                 return;
