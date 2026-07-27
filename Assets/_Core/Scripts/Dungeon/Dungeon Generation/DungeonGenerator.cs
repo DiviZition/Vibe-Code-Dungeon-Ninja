@@ -4,25 +4,24 @@ using Enemy;
 
 namespace Dungeon
 {
-    public class DungeonGenerator : MonoBehaviour
+    public class DungeonGenerator
     {
-        [Header("Generation Settings")]
-        public int ZoneSize = 15;
-        public int MinRoomSize = 6;
-        [Range(1, 20)] public int ZonesCount = 10;
-        public int CorridorWidth = 2;
-        public int CorridorLength = 1;
-        public int Seed = 0;
+        public int ZoneSize { get; private set; } = 15;
+        public int MinRoomSize { get; private set; } = 6;
+        public int ZonesCount { get; private set; } = 10;
+        public int CorridorWidth { get; private set; } = 2;
+        public int CorridorLength { get; private set; } = 1;
+        public int Seed { get; private set; } = 0;
 
-        [Header("Debug")]
-        [SerializeField] private bool _debugLog;
+        private bool _debugLog = false;
 
         // Output - the generated dungeon data
-        public DungeonData Data { get; private set; }
+        private DungeonData _data;
         public int OddZoneSize => ZoneSize % 2 == 0 ? ZoneSize + 1: ZoneSize;
 
-        public void Generate()
+        public DungeonData Generate(DungeonGeneratorConfig config)
         {
+            TryApplyConfig(config);
             if (MinRoomSize > OddZoneSize)
                 MinRoomSize = OddZoneSize;
 
@@ -35,18 +34,33 @@ namespace Dungeon
             List<RoomData> rooms = PlaceRoomsInZones(random, zonePositions);
             List<CorridorData> corridors = GenerateCorridors(rooms, zonePositions);
 
-            Data = new DungeonData(rooms, corridors, ZoneSize, ZonesCount, Seed);
+            _data = new DungeonData(rooms, corridors, ZoneSize, ZonesCount, Seed);
 
             if (_debugLog)
             {
-                for (int i = 0; i < Data.Rooms.Count; i++)
+                for (int i = 0; i < _data.Rooms.Count; i++)
                 {
-                    var room = Data.Rooms[i];
+                    var room = _data.Rooms[i];
                     var roomCorridors = room.ConnectedCorridors != null ? string.Join(",", room.ConnectedCorridors) : "none";
                 }
             }
 
             DetermineBossRoom();
+            return _data;
+        }
+
+        private void TryApplyConfig(DungeonGeneratorConfig config)
+        {
+            if (config == null)
+                return;
+
+            ZoneSize = config.ZoneSize;
+            MinRoomSize = config.MinRoomSize;
+            ZonesCount = config.ZonesCount;
+            CorridorWidth = config.CorridorWidth;
+            CorridorLength = config.CorridorLength;
+            Seed = config.Seed;
+            _debugLog = config.IsDebugging;
         }
 
         private List<Vector2Int> GenerateZonePositions(System.Random random)
@@ -381,16 +395,16 @@ namespace Dungeon
 
         private void DetermineBossRoom()
         {
-            if (Data.Rooms == null || Data.Rooms.Count == 0)
+            if (_data.Rooms == null || _data.Rooms.Count == 0)
                 return;
 
-            var startRoom = Data.Rooms[0];
+            var startRoom = _data.Rooms[0];
             int maxDistance = -1;
             int bossIndex = 0;
 
-            for (int i = 1; i < Data.Rooms.Count; i++)
+            for (int i = 1; i < _data.Rooms.Count; i++)
             {
-                var room = Data.Rooms[i];
+                var room = _data.Rooms[i];
                 int distance = Mathf.Abs(room.GridX - startRoom.GridX) + Mathf.Abs(room.GridY - startRoom.GridY);
 
                 if (distance > maxDistance)
@@ -400,7 +414,7 @@ namespace Dungeon
                 }
             }
 
-            Data.Rooms[bossIndex].SetRoomType(RoomType.Boss);
+            _data.Rooms[bossIndex].SetRoomType(RoomType.Boss);
         }
 
         private void Log(string message)

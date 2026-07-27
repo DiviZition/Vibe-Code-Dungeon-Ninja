@@ -42,6 +42,7 @@ namespace Dungeon
             Debug.Log("[DungeonVisualizer] Generation complete");
         }
 
+        [ContextMenu("Clear map")]
         public void ClearAll()
         {
             _floorTilemap?.ClearAllTiles();
@@ -109,11 +110,6 @@ namespace Dungeon
             UpdateCorridorDoors(corridor);
         }
 
-        private void SubscribeForCorridorsEvents(CorridorData corridor)
-        {
-            _corridorEvents = corridor.OnDoorStateChanged.Subscribe(UpdateCorridorDoors);
-        }
-
         private void RenderCorridorWalls(CorridorData corridor, int minX, int maxX, int minY, int maxY)
         {
             if (corridor.IsHorizontal)
@@ -134,6 +130,11 @@ namespace Dungeon
                     _wallTilemap.SetTile(new Vector3Int(maxX, y, 0), _wallTile);
                 }
             }
+        }
+
+        private void SubscribeForCorridorsEvents(CorridorData corridor)
+        {
+            _corridorEvents = corridor.OnDoorStateChanged.Subscribe(UpdateCorridorDoors);
         }
 
         public void UpdateCorridorDoors(CorridorData corridor)

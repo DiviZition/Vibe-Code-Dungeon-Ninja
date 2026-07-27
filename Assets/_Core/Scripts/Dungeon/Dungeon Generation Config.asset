@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60d6b76d5173ead4ea747d456982e570, type: 3}
+  m_Name: Dungeon Generation Config
+  m_EditorClassIdentifier: Main::Dungeon.DungeonGeneratorConfig
+  ZoneSize: 15
+  MinRoomSize: 6
+  ZonesCount: 10
+  CorridorWidth: 2
+  CorridorLength: 1
+  Seed: 0
+  IsDebugging: 0
