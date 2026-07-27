@@ -14,7 +14,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_GroupName: Default Local Group
   m_GUID: a3835f5bb112ae0498bfe3860da817cf
-  m_SerializeEntries: []
+  m_SerializeEntries:
+  - m_GUID: 58e2f312d97409b409ef278b17bd1ddd
+    m_Address: Player
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 733c36aa32092b5498d57808d398fb3e
+    m_Address: DungeonVisual
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c910b28ecbc9e4648be7ab9ad95e1596
+    m_Address: Enemy
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 317806d8e3081a346bf0ecea3154f4d3, type: 2}
   m_SchemaSet:

@@ -1,6 +1,7 @@
 ﻿using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -8,19 +9,18 @@ using Zenject;
 
 public class DevTool : MonoBehaviour
 {
-    [SerializeField] private SpriteRenderer _sprite;
-    private UniTask _tryFireEventsTask;
-    private FirebaseService _fireBase;
+    private DungeonGameDirector _dungeonDirector;
 
     [Inject]
-    private void Construct(FirebaseService fireBase)
+    private void Construct(DungeonGameDirector dd)
     {
-        _fireBase = fireBase;
+        _dungeonDirector = dd;
     }
+
     [Button]
-    private void DoAction(int value)
+    private void StartGame()
     {
-        
+        _dungeonDirector.StartGame().Forget();
     }
 
 }
