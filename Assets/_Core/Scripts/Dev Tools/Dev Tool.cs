@@ -1,10 +1,9 @@
 ﻿using Cysharp.Threading.Tasks;
-using Firebase;
-using Firebase.Extensions;
 using Sirenix.OdinInspector;
 using System;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Zenject;
 
 public class DevTool : MonoBehaviour
@@ -18,14 +17,10 @@ public class DevTool : MonoBehaviour
     {
         _fireBase = fireBase;
     }
-
     [Button]
-    private void DoAction()
+    private void DoAction(int value)
     {
+        
     }
 
-    private void EmptyMethod()
-    {
-
-    }
 }

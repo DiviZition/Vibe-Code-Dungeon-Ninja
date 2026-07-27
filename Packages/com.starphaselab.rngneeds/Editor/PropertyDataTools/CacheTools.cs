@@ -295,7 +295,7 @@ namespace RNGNeeds.Editor
                     var enumType = item.GetTargetObjectOfProperty().GetType();
                     var isFlags = enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Length > 0;
                     #if UNITY_2021_1_OR_NEWER
-                    return isFlags ? GetEnumFlagsNames(enumType, item.enumValueFlag) : item.enumValueIndex >= 0 && item.enumValueIndex < item.enumDisplayNames.Length ? item.enumDisplayNames[item.enumValueFlag] : "Missing ?";
+                    return isFlags ? GetEnumFlagsNames(enumType, item.enumValueFlag) : item.enumValueIndex >= 0 && item.enumValueIndex < item.enumDisplayNames.Length ? item.enumDisplayNames[item.enumValueIndex] : "Missing ?";
                     #else
                     return isFlags ? string.Empty : item.enumValueIndex >= 0 && item.enumValueIndex < item.enumDisplayNames.Length ? item.enumDisplayNames[item.enumValueIndex] : "Missing ?";
                     #endif

@@ -116,7 +116,7 @@ namespace RNGNeeds.Editor
             foreach (var drawerSettings in DrawerSettings)
                 if (drawerSettings.DrawerID.Equals(drawerID))
                 {
-                    drawerSettings.Modified = DateTime.Now.Ticks;
+                    // drawerSettings.Modified = DateTime.Now.Ticks;
                     return drawerSettings;
                 }
             

@@ -105,8 +105,8 @@ namespace RNGNeeds
             set
             {
                 m_Capacity = Mathf.Max(1, value);
-                History.Capacity = m_Capacity * 2;
                 Trim();
+                History.Capacity = m_Capacity * 2;
             }
         }
 

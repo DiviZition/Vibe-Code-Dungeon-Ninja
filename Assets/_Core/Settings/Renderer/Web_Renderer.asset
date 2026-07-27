@@ -17,6 +17,19 @@ MonoBehaviour:
   data:
     settings: {fileID: 11400000, guid: 8a946ea04f62e3c4fb14b8db62a31e53, type: 2}
   outlineMaterial: {fileID: 2100000, guid: b54a78f5f42da784a843d8d632b1a621, type: 2}
+--- !u!114 &-4171453760565142547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 729a2e952309e2547a3747b2cdd9a36f, type: 3}
+  m_Name: Shapes Render Feature
+  m_EditorClassIdentifier: ShapesRuntime::Shapes.ShapesRenderFeature
+  m_Active: 1
 --- !u!114 &-3224565971041995855
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -82,6 +95,7 @@ MonoBehaviour:
     probeVolumeBlendStatesCS: {fileID: 0}
   m_RendererFeatures:
   - {fileID: 646172821492139133}
+  - {fileID: -4171453760565142547}
   m_RendererFeatureMap: 7d048df0c1aaf708
   m_UseNativeRenderPass: 0
   xrSystemData: {fileID: 0}

@@ -1,0 +1,14 @@
+OVDF v1.1
+DevTool, Main
+
+# DoAction(int)
+Visibility: Shown
++ [Sirenix.OdinInspector.ButtonAttribute]
+	Name = "Do Action"
+	Style = FoldoutButton
+	Icon = ArrowRightShort
+	stretch = True
+	HasDefinedStretch = True
+	Expanded = False
+	drawResult = False
+	drawResultIsSet = True

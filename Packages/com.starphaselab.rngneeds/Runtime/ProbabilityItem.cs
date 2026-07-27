@@ -17,7 +17,7 @@ namespace RNGNeeds
         [SerializeField] private bool m_Enabled;
         [SerializeField] private bool m_Locked;
         [SerializeField] private Vector2 m_InfluenceSpread = new Vector2(0f, 1f);
-        [SerializeReference] private Object m_InfluenceProvider;
+        [SerializeField] private Object m_InfluenceProvider;
         [SerializeField] private bool m_InvertInfluence;
         
         [SerializeField] private bool m_DepletableItem = true;

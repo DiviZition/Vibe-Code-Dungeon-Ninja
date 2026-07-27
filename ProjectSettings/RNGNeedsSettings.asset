@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RNGNeeds.Editor::RNGNeeds.Editor.RNGNeedsSettings
   m_Initialized: 1
-  m_UpdatedToVersion: 1.0.0
+  m_UpdatedToVersion: 1.1.0
   m_DrawerOptionsLevel: 0
   m_DrawerSectionButtons: 1
   m_DrawerDisplayOptionsButtons: 0

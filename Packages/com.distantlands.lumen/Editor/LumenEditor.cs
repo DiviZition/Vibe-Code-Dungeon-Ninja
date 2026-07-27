@@ -65,7 +65,8 @@ namespace DistantLands.Lumen.EditorScripts
             scale.BindProperty(serializedObject.FindProperty("scale"));
             scale.RegisterValueChangeCallback(evt =>
             {
-                effectPlayer.RedoEffect();
+                if (effectPlayer != null) 
+                    effectPlayer.RedoEffect();
             });
             localSettings.Add(scale);
 
@@ -73,7 +74,8 @@ namespace DistantLands.Lumen.EditorScripts
             brightness.BindProperty(serializedObject.FindProperty("brightness"));
             brightness.RegisterValueChangeCallback(evt =>
             {
-                effectPlayer.RedoEffect();
+                if (effectPlayer != null) 
+                    effectPlayer.RedoEffect();
             });
             localSettings.Add(brightness);
 
@@ -81,7 +83,8 @@ namespace DistantLands.Lumen.EditorScripts
             color.BindProperty(serializedObject.FindProperty("color"));
             color.RegisterValueChangeCallback(evt =>
             {
-                effectPlayer.RedoEffect();
+                if (effectPlayer != null) 
+                    effectPlayer.RedoEffect();
             });
             color.AddToClassList("verticalBreak");
             localSettings.Add(color);
@@ -119,7 +122,8 @@ namespace DistantLands.Lumen.EditorScripts
                     serializedObject.ApplyModifiedProperties();
                     serializedObject.Update();
 
-                    effectPlayer.RedoEffect();
+                    if (effectPlayer != null)
+                        effectPlayer.RedoEffect();
 
                     dontAssignSunFoldout.style.display = !effectPlayer.autoAssignSun ? DisplayStyle.Flex : DisplayStyle.None;
                 });
@@ -129,7 +133,8 @@ namespace DistantLands.Lumen.EditorScripts
                     serializedObject.ApplyModifiedProperties();
                     serializedObject.Update();
 
-                    effectPlayer.RedoEffect();
+                    if (effectPlayer != null) 
+                        effectPlayer.RedoEffect();
 
                     localSunDirection.style.display = !effectPlayer.useLumenSunScript ? DisplayStyle.Flex : DisplayStyle.None;
                 });
@@ -139,7 +144,8 @@ namespace DistantLands.Lumen.EditorScripts
                     serializedObject.ApplyModifiedProperties();
                     serializedObject.Update();
 
-                    effectPlayer.RedoEffect();
+                    if (effectPlayer != null)
+                        effectPlayer.RedoEffect();
                 });
 
 
@@ -214,7 +220,7 @@ namespace DistantLands.Lumen.EditorScripts
         {
             if (!effectPlayer || effectPlayer.profile == null) return;
 
-            ((LumenEffectEditor)CreateEditor(effectPlayer.profile)).DrawHandles(effectPlayer);
+            LumenEffectEditor.DrawHandles(effectPlayer);
         }
 
     }

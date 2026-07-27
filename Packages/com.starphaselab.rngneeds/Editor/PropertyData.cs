@@ -103,7 +103,7 @@ namespace RNGNeeds.Editor
             var percentageOnly = DrawerSettings.ShowIndex == false && DrawerSettings.ShowInfo == false && DrawerSettings.ShowPercentageOrWeights;
             stripePercentageStyle.fontSize = PLDrawerTheme.stripeInfoFontSize;
             stripePercentageStyle.alignment = percentageOnly ? TextAnchor.MiddleCenter : DrawerSettings.StripeHeight == StripeHeight.Compact ? TextAnchor.MiddleRight : TextAnchor.LowerCenter;
-            stripePercentageStyle.contentOffset = percentageOnly ? new Vector2(0f, 1f) : DrawerSettings.StripeHeight == StripeHeight.Compact ? new Vector2(-4f, 0f) : new Vector2(0f, 1f);
+            stripePercentageStyle.contentOffset = percentageOnly ? new Vector2(0f, 0f) : DrawerSettings.StripeHeight == StripeHeight.Compact ? new Vector2(-4f, 0f) : new Vector2(0f, 0f);
         }
         
         public float ElementHeightCallback(int index)

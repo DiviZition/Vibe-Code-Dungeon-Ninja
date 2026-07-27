@@ -24,7 +24,7 @@ MonoBehaviour:
       data:
         active: 1
         brightness: 0.111
-        position: {x: -1.2977505, y: 0.3836148, z: -0.2656275}
+        position: {x: 0, y: 0.3836148, z: 0}
         rotation: {x: 55.3, y: 0, z: 0}
         scale: {x: 2, y: 2, z: 2}
         color: {r: 1, g: 1, b: 1, a: 1}

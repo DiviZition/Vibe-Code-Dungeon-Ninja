@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: a3835f5bb112ae0498bfe3860da817cf
   m_currentHash:
     serializedVersion: 2
-    Hash: b3ecf90473c41b1b9337cb12e6899bdd
+    Hash: 00000000000000000000000000000000
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 0
   m_CatalogRequestsTimeout: 0
@@ -64,6 +64,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 24e7ddeda91bae248934bbac4f39be5c, type: 2}
   - {fileID: 11400000, guid: 8f36fa1b400ac124190993f208b2ea06, type: 2}
   - {fileID: 11400000, guid: 945c47b39fcc9034cbfc61942954df44, type: 2}
+  - {fileID: 11400000, guid: f1a7803e316a7a04c82dd61b818ceadd, type: 2}
+  - {fileID: 11400000, guid: 04e77ed3facafb844a1b07bf5a957769, type: 2}
+  - {fileID: 11400000, guid: f8469b054ec138545be2f4e0df1e8d10, type: 2}
   - {fileID: 11400000, guid: 92ca5dc921072184cabc4d9cd63c408b, type: 2}
   - {fileID: 11400000, guid: 867aa77380ac7194590ea9a7e401609f, type: 2}
   m_BuildSettings:
@@ -111,13 +114,16 @@ MonoBehaviour:
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: 8b7df9f37aaede745b6a55864ee2a58b, type: 2}
-  m_InitializationObjects: []
+  - {fileID: 11400000, guid: 2563396e52a90f946bdf08181ad9a118, type: 2}
+  m_InitializationObjects:
+  - {fileID: 11400000, guid: d86b2c16bd7df8445a42c41dba19b69e, type: 2}
   m_CertificateHandlerType:
     m_AssemblyName: 
     m_ClassName: 
-  m_ActivePlayerDataBuilderIndex: 2
+  m_ActivePlayerDataBuilderIndex: 3
   m_DataBuilders:
   - {fileID: 11400000, guid: 9fa3532f9133c4d4ea8ffa21100f0f5c, type: 2}
   - {fileID: 11400000, guid: c19b4256856fb40419196add938df8cf, type: 2}
   - {fileID: 11400000, guid: 0402bb7dc3b59674981c501f8be2ab78, type: 2}
+  - {fileID: 11400000, guid: ca4a43e2ff1801a4b9834c577002fe6e, type: 2}
   m_ActiveProfileId: 364f82c271ab00948aeb81385c18e316

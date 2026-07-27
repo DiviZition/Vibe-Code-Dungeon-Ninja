@@ -750,6 +750,24 @@ namespace RNGNeeds
         /// <param name="locked">Specifies whether the added item should be locked in the list. The default is False.</param>
         public ProbabilityItem<T> AddItem(T value, bool enabled = true, bool locked = false)
         {
+            return AddItem(ItemCount, value, enabled, locked);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ProbabilityItem{T}"/> for the provided value and adds it to the specified index in the list. The new item's probability is automatically calculated based on the other items' probabilities. The following rules apply:
+        /// <list type="bullet">
+        /// <item>The probabilities of other items are reduced proportionally to maintain their current ratio.</item>
+        /// <item>The probabilities of locked items remain unchanged.</item>
+        /// <item>If all items in the list are locked, the new item is added with a probability of 0.</item>
+        /// </list>
+        /// </summary>
+        /// <returns>The newly created <see cref="ProbabilityItem{T}"/></returns>
+        /// <param name="index">The target index where the item should be inserted. Values outside the valid range are clamped.</param>
+        /// <param name="value">The value to be added.</param>
+        /// <param name="enabled">Specifies whether the added item should be enabled in the list. The default is True.</param>
+        /// <param name="locked">Specifies whether the added item should be locked in the list. The default is False.</param>
+        public ProbabilityItem<T> AddItem(int index, T value, bool enabled = true, bool locked = false)
+        {
             if (ProbabilityItems.Count == 0)
             {
                 return AddItem(value, 1f, enabled, locked);
@@ -784,6 +802,12 @@ namespace RNGNeeds
             }
             
             var newItem = AddItem(value, resultingProbability, enabled, locked);
+            var targetIndex = Mathf.Clamp(index, 0, ProbabilityItems.Count - 1);
+            if (targetIndex != ProbabilityItems.Count - 1)
+            {
+                ProbabilityItems.RemoveAt(ProbabilityItems.Count - 1);
+                ProbabilityItems.Insert(targetIndex, newItem);
+            }
 
             NormalizeProbabilities();
             return newItem;

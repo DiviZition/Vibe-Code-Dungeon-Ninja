@@ -15,6 +15,12 @@ MonoBehaviour:
   m_GroupName: Localization-String-Tables-English (en)
   m_GUID: 088e3ddad87e62c4e9bcffce1f758b03
   m_SerializeEntries:
+  - m_GUID: 0d7010c98c026874f8deea2eeeeed5dd
+    m_Address: Love Is Blind_en
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-en
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9db10b07142e63043bba91e93510c190
     m_Address: Table_en
     m_ReadOnly: 1
@@ -27,3 +33,4 @@ MonoBehaviour:
     m_Schemas:
     - {fileID: 11400000, guid: 6ffee91b66522d34ea04775ff895a3ab, type: 2}
     - {fileID: 11400000, guid: dafe716faafa6fd47ac7fd2d7bf8b1d1, type: 2}
+    - {fileID: 11400000, guid: 75847918143a93043920643b13b5d042, type: 2}
