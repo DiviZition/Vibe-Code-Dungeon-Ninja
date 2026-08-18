@@ -29,44 +29,6 @@
       "dependencies": {},
       "hash": "c2af83c9d4f8cdaada9d4a0e94de2f195d8e1d01"
     },
-    "com.google.external-dependency-manager": {
-      "version": "file:../Assets/Packages/Firebase/com.google.external-dependency-manager-1.2.186.tgz",
-      "depth": 0,
-      "source": "local-tarball",
-      "dependencies": {}
-    },
-    "com.google.firebase.analytics": {
-      "version": "file:../Assets/Packages/Firebase/com.google.firebase.analytics-13.12.0.tgz",
-      "depth": 0,
-      "source": "local-tarball",
-      "dependencies": {
-        "com.google.firebase.app": "13.12.0"
-      }
-    },
-    "com.google.firebase.app": {
-      "version": "file:../Assets/Packages/Firebase/com.google.firebase.app-13.12.0.tgz",
-      "depth": 0,
-      "source": "local-tarball",
-      "dependencies": {
-        "com.google.external-dependency-manager": "1.2.186"
-      }
-    },
-    "com.google.firebase.crashlytics": {
-      "version": "file:../Assets/Packages/Firebase/com.google.firebase.crashlytics-13.12.0.tgz",
-      "depth": 0,
-      "source": "local-tarball",
-      "dependencies": {
-        "com.google.firebase.app": "13.12.0"
-      }
-    },
-    "com.google.firebase.remote-config": {
-      "version": "file:../Assets/Packages/Firebase/com.google.firebase.remote-config-13.12.0.tgz",
-      "depth": 0,
-      "source": "local-tarball",
-      "dependencies": {
-        "com.google.firebase.app": "13.12.0"
-      }
-    },
     "com.singularitygroup.hotreload": {
       "version": "file:com.singularitygroup.hotreload",
       "depth": 0,
@@ -338,7 +300,7 @@
     },
     "com.unity.nuget.mono-cecil": {
       "version": "1.11.6",
-      "depth": 2,
+      "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
@@ -348,6 +310,20 @@
       "depth": 0,
       "source": "registry",
       "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.pipeline": {
+      "version": "0.5.0-exp.1",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.test-framework": "1.1.33",
+        "com.unity.nuget.mono-cecil": "1.11.6",
+        "com.unity.modules.uielements": "1.0.0",
+        "com.unity.modules.jsonserialize": "1.0.0",
+        "com.unity.modules.screencapture": "1.0.0",
+        "com.unity.nuget.newtonsoft-json": "3.0.2"
+      },
       "url": "https://packages.unity.com"
     },
     "com.unity.profiling.core": {

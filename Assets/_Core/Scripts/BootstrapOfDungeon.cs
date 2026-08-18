@@ -8,8 +8,6 @@ public class BootstrapOfDungeon : MonoInstaller
     private void InitializeAndBindServices(DiContainer container)
     {
         container.BindInterfacesAndSelfTo<TimeController>().FromNew().AsSingle().NonLazy();
-        container.BindInterfacesAndSelfTo<FirebaseService>().FromNew().AsSingle();
-        //container.BindInterfacesAndSelfTo<AdMobService>().FromNew().AsSingle(); // Should be global
 
         container.BindInterfacesAndSelfTo<DungeonGameDirector>().FromNew().AsSingle().NonLazy();
     }
