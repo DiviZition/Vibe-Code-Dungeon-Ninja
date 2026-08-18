@@ -104,11 +104,9 @@ GameObject:
   - component: {fileID: 6937543254089326794}
   - component: {fileID: 6720935471070003928}
   - component: {fileID: 8591307132447763148}
+  - component: {fileID: 9060277544844716066}
   - component: {fileID: 619542719882717339}
   - component: {fileID: 1870554667640901687}
-  - component: {fileID: 108131810126300373}
-  - component: {fileID: 5108138363265097413}
-  - component: {fileID: 9060277544844716066}
   m_Layer: 0
   m_Name: === PLAYER     ===
   m_TagString: Untagged
@@ -240,14 +238,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 5939689003330360969}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a8217b1acf747cb4c8822dc0a2a0e087, type: 3}
+  m_Script: {fileID: 11500000, guid: b2bd6b59827a4479984b6862571d80fe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NinjaRunner.Player.PlayerMovement
-  _initialSpeed: 10
-  _maxSpeed: 20
-  _speedIncreaseRate: 3
+  m_EditorClassIdentifier: Core::Player.PlayerView
   _rb: {fileID: 8591307132447763148}
-  _playerVisual: {fileID: 1870554667640901687}
+  _visualTransform: {fileID: 9091661046579613074}
+  _damageableVisual: {fileID: 9060277544844716066}
+  _rotationDuration: 0.25
 --- !u!114 &1870554667640901687
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -257,38 +254,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 5939689003330360969}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fb13c06722af48b409093829423a0722, type: 3}
+  m_Script: {fileID: 11500000, guid: 7ed56f46aaba41baab4a8eb85e58b4ac, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NinjaRunner.Player.PlayerVisual
-  _visualTransform: {fileID: 9091661046579613074}
-  _rotationDuration: 0.25
---- !u!114 &108131810126300373
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5939689003330360969}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c1b4ddd3dac2e942bfdb317101542f0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Player.PlayerMakeDamage
-  _baseDamage: 5
-  _baseAttackInterval: 0.2
---- !u!114 &5108138363265097413
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5939689003330360969}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4efa9027bec86204aa7955cb702f23f0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Player.PlayerHealth
-  <MaxHealth>k__BackingField: 20
+  m_EditorClassIdentifier: Core::Player.PlayerInputView
 --- !u!114 &9060277544844716066
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -300,20 +268,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4397d800e3b3efa4bb51c235773cbdd7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DamageableVisual
-  serializationData:
-    SerializedFormat: 2
-    SerializedBytes: 
-    ReferencedUnityObjects:
-    - {fileID: 5108138363265097413}
-    SerializedBytesString: 
-    Prefab: {fileID: 0}
-    PrefabModificationsReferencedUnityObjects: []
-    PrefabModifications: []
-    SerializationNodes:
-    - Name: _damageable
-      Entry: 10
-      Data: 0
+  m_EditorClassIdentifier: Core::DamageableVisual
   _spriteRenderer: {fileID: 5691054681226638587}
   _hitColor: {r: 0.8773585, g: 0.21106264, b: 0.21106264, a: 1}
   _hitDuration: 0.5

@@ -104,7 +104,6 @@ GameObject:
   - component: {fileID: 5467747789531834808}
   - component: {fileID: 3789201214850508351}
   - component: {fileID: 592677251261628743}
-  - component: {fileID: 8681253209878283682}
   - component: {fileID: 5771394703340225050}
   - component: {fileID: 2879566332659153371}
   m_Layer: 7
@@ -230,19 +229,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
---- !u!114 &8681253209878283682
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3679109455077906872}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4efa9027bec86204aa7955cb702f23f0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Player.PlayerHealth
-  <MaxHealth>k__BackingField: 10
 --- !u!114 &5771394703340225050
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -254,20 +240,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4397d800e3b3efa4bb51c235773cbdd7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DamageableVisual
-  serializationData:
-    SerializedFormat: 2
-    SerializedBytes: 
-    ReferencedUnityObjects:
-    - {fileID: 8681253209878283682}
-    SerializedBytesString: 
-    Prefab: {fileID: 0}
-    PrefabModificationsReferencedUnityObjects: []
-    PrefabModifications: []
-    SerializationNodes:
-    - Name: _damageable
-      Entry: 10
-      Data: 0
+  m_EditorClassIdentifier: Core::DamageableVisual
   _spriteRenderer: {fileID: 1979697046932780603}
   _hitColor: {r: 1, g: 0, b: 0, a: 1}
   _hitDuration: 0.5
@@ -282,75 +255,42 @@ MonoBehaviour:
   m_GameObject: {fileID: 3679109455077906872}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cfe12e7a96a6eee48b226b720ef3a9f5, type: 3}
+  m_Script: {fileID: 11500000, guid: f512bf04b081405fb26a310583ebfa7b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Main::Enemy.EnemyBase
-  <Health>k__BackingField: {fileID: 8681253209878283682}
-  _simpleMovement:
-    _rigidbody: {fileID: 592677251261628743}
-    _moveCurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 1
-        inSlope: 2
-        outSlope: 2
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    _moveDurationPerUnit: 0.25
-    _moveDistance: {x: 1.6805556, y: 3.1805556}
-  _simpleAttack:
-    _transform: {fileID: 6622652864156036702}
-    _chargeTime: 1
-    _maxAttackLength: 1
-    _attackRadius: 1
-    baseDamage: 10
-    _attackVisual: {fileID: 5763086775686457545}
-    _attackChargeVisualization:
-      serializedVersion: 2
-      key0: {r: 1, g: 0, b: 0, a: 0}
-      key1: {r: 1, g: 0, b: 0, a: 1}
-      key2: {r: 0, g: 0, b: 0, a: 0.08627451}
-      key3: {r: 0, g: 0, b: 0, a: 1}
-      key4: {r: 0, g: 0, b: 0, a: 1}
-      key5: {r: 0, g: 0, b: 0, a: 0}
-      key6: {r: 0, g: 0, b: 0, a: 0}
-      key7: {r: 0, g: 0, b: 0, a: 0}
-      ctime0: 0
-      ctime1: 65535
-      ctime2: 0
-      ctime3: 0
-      ctime4: 0
-      ctime5: 0
-      ctime6: 0
-      ctime7: 0
-      atime0: 0
-      atime1: 5204
-      atime2: 21781
-      atime3: 58403
-      atime4: 56283
-      atime5: 0
-      atime6: 0
-      atime7: 0
-      m_Mode: 0
-      m_ColorSpace: 0
-      m_NumColorKeys: 2
-      m_NumAlphaKeys: 4
+  m_EditorClassIdentifier: Core::Enemy.EnemyView
+  _rb: {fileID: 592677251261628743}
+  _attackVisual: {fileID: 5763086775686457545}
+  _attackChargeVisualization:
+    serializedVersion: 2
+    key0: {r: 1, g: 0, b: 0, a: 0}
+    key1: {r: 1, g: 0, b: 0, a: 1}
+    key2: {r: 0, g: 0, b: 0, a: 0.08627451}
+    key3: {r: 0, g: 0, b: 0, a: 1}
+    key4: {r: 0, g: 0, b: 0, a: 1}
+    key5: {r: 0, g: 0, b: 0, a: 0}
+    key6: {r: 0, g: 0, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0, a: 0}
+    ctime0: 0
+    ctime1: 65535
+    ctime2: 0
+    ctime3: 0
+    ctime4: 0
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 5204
+    atime2: 21781
+    atime3: 58403
+    atime4: 56283
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_ColorSpace: 0
+    m_NumColorKeys: 2
+    m_NumAlphaKeys: 4
+  _damageableVisual: {fileID: 5771394703340225050}
 --- !u!1 &4412814820053276829
 GameObject:
   m_ObjectHideFlags: 0

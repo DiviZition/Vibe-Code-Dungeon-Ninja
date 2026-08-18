@@ -86,10 +86,27 @@ Safe area between dungeon runs:
 
 - Unity 6000+
 - 2D Top-Down view
-- Service-oriented player architecture
+- Strict View/Model architecture (pure C# models, forwarding Unity views)
+- Zenject DI + pure C# `GameBootstrapper` entry point
 - R3 for events
 - New Input System
 - URP Rendering
+
+---
+
+## Architecture Rules
+
+The project follows a strict **View/Model separation**:
+
+- **Models** (`IModel`) are pure C# - no `MonoBehaviour`, no Unity components. They hold state and logic, and tick via `SimulationTicker` (Zenject `ITickable`).
+- **Views** (`IView<TModel>`) are `MonoBehaviour`s initialized with `Init(TModel model)`. They bridge Unity (physics, input, rendering) into models and never own gameplay logic.
+- **Forwarding views** (e.g. `PlayerInputView`) only translate Unity events into model calls.
+- **Crossing the boundary** is always through interfaces (`IPlayerModel`, `IEnemyModel`, `IDungeonModel`, ...).
+- **Single entry point**: pure C# `GameBootstrapper` (`IInitializable`) runs the async init pipeline - generate dungeon, spawn `DungeonVisualizer` view, spawn player + enemies, bind views to models. `BootstrapOfDungeon` is the Zenject installer wiring everything.
+- **DungeonFacade** is the single facade over dungeon generation and enemy spawning.
+- Physics checks belong in views; combat math lives in models.
+
+Do not add gameplay logic to MonoBehaviours and do not reference Unity components from models.
 
 ---
 

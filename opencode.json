@@ -8,6 +8,20 @@
       },
       "type": "remote",
       "url": "https://ai-game.dev/mcp"
+    },
+    "unitycli": {
+      "type": "local",
+      "command": [
+        "C:/Users/DiviZition Limited/AppData/Local/Unity/bin/unity.exe",
+        "mcp",
+        "--project-path",
+        "X:/Workspace/Projects/OwnProjects/Vibe-Code-Dungeon-Ninja"
+      ],
+      "enabled": true,
+      "environment": {
+        "NO_PROXY": "*",
+        "UNITY_NO_BANNER": "1"
+      }
     }
   }
 }

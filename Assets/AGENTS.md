@@ -43,14 +43,14 @@ Unity -projectPath "<path>" -runTests -testFilter "Namespace.ClassName.TestMetho
 ### Naming Conventions
 | Element | Convention | Example |
 |---------|------------|---------|
-| Namespaces | PascalCase | `Player`, `Enemy`, `TimeControll` |
-| Classes/Structs | PascalCase | `PlayerMovement`, `Enemy` |
-| Public Methods | PascalCase | `SetActive()`, `TakeDamage()` |
-| Private Fields | _camelCase | `_rb`, `_playerVisual` |
+| Namespaces | PascalCase | `Player`, `Enemy`, `TimeControll`, `Core` |
+| Classes/Structs | PascalCase | `PlayerModel`, `PlayerView`, `HealthModel` |
+| Public Methods | PascalCase | `Init()`, `TakeDamage()` |
+| Private Fields | _camelCase | `_rb`, `_model` |
 | Properties | PascalCase | `IsActive`, `Health` |
 | Parameters | camelCase | `newActiveState`, `damageAmount` |
 | Constants | PascalCase | `MaxSpeed`, `DefaultDelay` |
-| Interfaces | IPascalCase | `ITimeControllable`, `IDamageable` |
+| Interfaces | IPascalCase | `IPlayerModel`, `IEnemyModel`, `IDamageable` |
 
 ### File Organization
 ```csharp
@@ -63,22 +63,26 @@ using R3;
 
 namespace Player
 {
-    [RequireComponent(typeof(Rigidbody2D))]
-    public class PlayerMovement : MonoBehaviour
+    // Model - pure C#, no Unity components, ticks via SimulationTicker
+    public class PlayerModel : IPlayerModel, ITickable
     {
-        [Header("Movement Settings")]
-        [SerializeField] private float _initialSpeed = 10f;
+        public readonly struct MovementInput { }
+        public void Tick() { }
+    }
 
+    // View - MonoBehaviour, initialized with the model, bridges Unity to the model
+    public class PlayerView : MonoBehaviour, IView<IPlayerModel>, IHasDamageable
+    {
         [Header("References")]
         [SerializeField] private Rigidbody2D _rb;
 
-        private GameInput _gameInput;
-        private Vector2 _currentDirection;
+        public void Init(IPlayerModel model) { }
+    }
 
-        private void OnEnable() { }
-        private void Update() { }
-        
-        public void ResetSpeed() { }
+    // Forwarding view - translates Unity input into model calls only
+    public class PlayerInputView : MonoBehaviour
+    {
+        public void Init(IPlayerModel model) { }
     }
 }
 ```
@@ -120,7 +124,8 @@ public Vector3 Position => Transform.localPosition;
 
 ## 3. Anti-Overengineering Principles
 
-- **Don't create interfaces** unless you have 3+ implementations
+- **Crossing the View/Model boundary is always through an interface** (`IPlayerModel`, `IEnemyModel`, `IDungeonModel`, ...) - this is the one case where interfaces are required by the architecture
+- **Don't create additional interfaces** for internal model internals unless you have 3+ implementations
 - **Don't create abstractions** "just in case" — only when needed
 - **Prefer simple, readable code** over clever architecture
 - Only add code truly needed for the current task
@@ -169,6 +174,23 @@ public void Construct(TimeController timeController)
 
 - Use `[Inject]` for field injection
 - Use `[Inject]` on constructor-like methods for method injection
+- Bind `AsSingle().NonLazy()` for system singletons (TimeController, SimulationTicker, DungeonModel, DungeonFacade, GameBootstrapper)
+- `ScriptableObject` configs (e.g. `DungeonGeneratorConfig`) cannot be `new`-ed in a container - bind via `ScriptableObject.CreateInstance<T>()`
+- Views are **not** resolved through the container - they are spawned by `GameBootstrapper` (Addressables) and wired via `Init(IModel)`
+
+---
+
+## 5b. View/Model Architecture (MANDATORY)
+
+This project uses a strict View/Model separation. All gameplay code MUST follow it:
+
+- **Models** (`*Model`, `IModel`): pure C#, hold state/logic/data. NO `MonoBehaviour`, NO `GameObject`, NO components, NO `[SerializeField]`, NO Unity lifecycle callbacks. They register with `SimulationTicker` to tick (Zenject `ITickable`). May use `UnityEngine.Random`, `Vector2`, `Mathf`.
+- **Views** (`*View`, `IView<TModel>`): `MonoBehaviour`s. Implement `Init(TModel model)` and forward Unity signals (colliders, input, physics) into the model. Never own gameplay decisions.
+- **Forwarding views**: thin Unity-to-model translators (e.g. `PlayerInputView` reads input, calls `model.SetMovementInput(...)`).
+- **Boundary crossing is always via interfaces**: models depend on `ITimeController`/`ITickable`, views depend on `IPlayerModel`/`IEnemyModel`/`IDungeonModel`.
+- **Entry point**: pure C# `GameBootstrapper` (`Zenject.IInitializable`) runs the async init pipeline (generate dungeon → spawn DungeonVisualizer → spawn player → spawn enemies → bind views). `BootstrapOfDungeon` is the Zenject installer.
+- **Facade**: `DungeonFacade` is the single facade over dungeon generation + enemy spawning.
+- **Physics** (OverlapCircle, collisions, raycasts) belongs in views, then forwarded. **Combat math** lives in models.
 
 ---
 
@@ -201,16 +223,34 @@ public static void TestMethodName()
 
 ```
 Assets/
-├── _Core/                    # Your gameplay code
+├── _Core/                    # Gameplay code (assembly "Core")
 │   ├── Scripts/
-│   │   ├── Player/
-│   │   ├── Enemy/
-│   │   └── Time Manager/
+│   │   ├── Core/             # IModel, IView, IDamageable, IHealthModel, HealthModel, IHasDamageable, SimulationTicker
+│   │   ├── Dungeon/          # IDungeonModel/DungeonModel, IDungeonFacade/DungeonFacade, DungeonEnemySpawner
+│   │   │   └── Dungeon Generation/   # DungeonGenerator, DungeonVisualizer (view), DungeonData, config
+│   │   ├── Player/           # IPlayerModel/PlayerModel, PlayerConfig, PlayerView, PlayerInputView
+│   │   ├── Enemy/            # IEnemyModel/EnemyModel, EnemyBehaviorConfig, EnemyView
+│   │   │   └── Behavior/     # Enemy states (EnemyMoveState, EnemyAttackState, EnemyIdleState)
+│   │   ├── Time Manager/     # ITimeController, TimeController, SimulationTicker usage
+│   │   ├── Shared/           # DamageableVisual (view for IDamageable)
+│   │   ├── GameBootstrapper.cs    # Pure C# init pipeline (IInitializable)
+│   │   ├── BootstrapOfDungeon.cs  # Zenject installer
+│   │   └── Tests/
+│   ├── Prefabs/
 │   ├── Scenes/
-│   └── Settings/
-├── Plugins/                  # Zenject, R3, etc.
-└── Assets/                   # Third-party assets
+│   └── Settings/             # GameInput.inputactions (+ generated GameInput.cs)
+├── AGENTS.md
 ```
+
+### Model / View / Bootstrapper responsibilities
+
+| Layer | Lives in | Rules |
+|-------|----------|-------|
+| **Model** | `Core`/`Dungeon`/`Player`/`Enemy` namespaces | Pure C#, state+logic, `ITickable` via `SimulationTicker`, events via R3 `Observable` |
+| **View** | MonoBehaviours | `Init(IModel)`, bridges Unity (physics/input/rendering) to model, no gameplay logic |
+| **Facade** | `DungeonFacade` | Single entry to generation + spawning |
+| **Bootstrapper** | `GameBootstrapper` | Spawns prefabs via Addressables, wires views to models |
+| **Installer** | `BootstrapOfDungeon` | Zenject bindings only |
 
 ---
 
@@ -231,16 +271,16 @@ Assets/
 
 ## 10. Player System Architecture
 
-- **Service Locator**: `PlayerCore` holds service references
-- **Services**: Implement interfaces (`IPlayerMovementService`, etc.)
-- **Events**: Use R3 `EventBus` for output-only communication
+- **Strict View/Model** (see 5b): `PlayerModel` is pure C# (state + movement logic + ticking), `PlayerView` renders + applies physics forces, `PlayerInputView` forwards input, `DamageableVisual` renders damage feedback.
+- **Health**: `IHealthModel`/`HealthModel` (pure C#, R3 events `OnDamaged`/`OnDeath`), reached via `IHasDamageable.Damageable`.
+- **Damage**: any `IDamageable` (player, enemies) exposes `HealthModel`; physics checks (e.g. `OverlapCircleAll` in `EnemyView`) forward damage calls into models.
 
 ```csharp
 // External → Player
-playerCore.GetService<IPlayerStatsService>().TakeDamage(10);
+playerModel.TakeDamage(10);
 
 // Player → External
-EventBus.Publish(new PlayerDiedEvent());
+playerModel.Health.OnDeath.Subscribe(...);
 ```
 
 ---

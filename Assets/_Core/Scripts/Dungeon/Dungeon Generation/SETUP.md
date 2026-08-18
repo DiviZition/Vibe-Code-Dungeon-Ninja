@@ -1,26 +1,29 @@
 # Dungeon Setup Instructions
 
+## Architecture Overview
+
+The dungeon uses the strict **View/Model** architecture. Scene setup is minimal: gameplay objects are **not** placed in the scene manually - they are generated and wired at runtime by the pure C# `GameBootstrapper` (`Zenject.IInitializable`).
+
+Flow:
+
+1. `BootstrapOfDungeon` (Zenject installer on the `=== BOOTSTRAP ===` object in `Main.unity`) binds all models, facades, tickers and the `GameBootstrapper`.
+2. `GameBootstrapper.Initialize()` runs the async pipeline:
+   - `GenerateDungeon()` - generates `DungeonData` via `DungeonModel`
+   - `SpawnDungeonVisual()` - Addressables loads `DungeonVisual` prefab (`DungeonVisualizer` view) → `Init(model)`
+   - `SpawnPlayer()` - Addressables loads `Player` prefab → `Init(PlayerModel)`
+   - `SpawnEnemies()` - `DungeonFacade` spawns each enemy into its room, each view `Init(EnemyModel)`
+3. Views are wired to models via `Init(IModel)`; models tick via `SimulationTicker` (Zenject `ITickable`).
+
 ## Scene Hierarchy Setup
 
-### 1. Create DungeonManager Object
+The only required object in `Main.unity` is the Zenject scene context with `BootstrapOfDungeon` installed on the `=== BOOTSTRAP ===` GameObject. Tilemaps are under `=== WORLD === / Grid`:
 
-In `Main.unity`, create a new empty GameObject:
-- **Parent:** `=== WORLD ===` (existing root object)
-- **Name:** `DungeonManager`
-
-### 2. Add Components to DungeonManager
-
-Add these scripts to the `DungeonManager` GameObject:
-- `DungeonGenerator`
-- `DungeonVisualizer`
-
-### 3. Link Tilemaps (Already Exist)
-
-The scene already has tilemaps under `=== WORLD === / Grid`:
 - `Floor Tilemap`
 - `Bounds Tilemap`
 
-### 4. Configure DungeonGenerator
+## Configure DungeonGeneratorConfig
+
+The `Dungeon Generation Config` asset (`Assets/_Core/Scripts/Dungeon/Dungeon Generation Config.asset`, ScriptableObject `DungeonGeneratorConfig`) controls generation:
 
 | Field | Value |
 |-------|-------|
@@ -31,7 +34,11 @@ The scene already has tilemaps under `=== WORLD === / Grid`:
 | Corridor Length | 1 |
 | Seed | 0 (random) |
 
-### 5. Configure DungeonVisualizer
+The installer binds it via `DungeonGeneratorConfig.CreateInstance<DungeonGeneratorConfig>()` - never `new`.
+
+## Configure DungeonVisualizer Prefab
+
+`Assets/_Core/Prefabs/Dungeon Visualizer.prefab` holds the `DungeonVisualizer` view:
 
 | Field | Reference |
 |-------|-----------|
@@ -41,46 +48,28 @@ The scene already has tilemaps under `=== WORLD === / Grid`:
 | Wall Tile | `Black` (from TestTileMap folder) |
 | Door Tile | `Brown` (from TestTileMap folder) |
 
-### 6. Link DungeonVisualizer in DungeonGenerator (optional)
-
-For automatic visualization on regenerate:
-- Add `DungeonVisualizer` reference if needed
-
----
-
 ## Expected Result
 
-When you press Play or call `DungeonManager.GenerateDungeon()`:
-1. Dungeon generates with rooms and corridors
-2. Rooms rendered with white floor + black walls
-3. Corridors rendered with white floor + black side walls
-4. Doors (brown tiles) at corridor-room connections
-5. Walls on `Bounds Tilemap` have collision (TilemapCollider2D)
+When you press Play:
 
----
+1. `GameBootstrapper` generates the dungeon
+2. `DungeonVisualizer` view is spawned and `Init`'d with the dungeon model
+3. Rooms rendered with white floor + black walls, corridors + doors (brown tiles)
+4. Player spawned at the start room and wired to `PlayerModel`
+5. Enemies spawned into their rooms and wired to `EnemyModel`s
+6. Walls on `Bounds Tilemap` have collision (TilemapCollider2D)
+7. Door locking/unlocking driven by room enemy count (doors unlock when all enemies die)
 
 ## Testing Door Logic
 
-### Add enemy to room:
-```csharp
-dungeonManager.Data.Rooms[0].AddEnemy();
-```
+Door state is derived from room enemy counts on the model (`RoomData.EnemiesInside`):
 
-### Remove enemy from room:
-```csharp
-dungeonManager.Data.Rooms[0].RemoveEnemy();
-```
-
-### Manually open room:
-```csharp
-dungeonManager.OpenRoom(0);
-```
-
----
+- Adding/removing enemies happens through `DungeonModel.AddEnemyToRoom/RemoveEnemyFromRoom` (called by `GameBootstrapper`/enemy death)
 
 ## Layer Configuration
 
 Ensure `Bounds Tilemap` GameObject has:
+
 - Layer: `8` (or your collision layer)
 - `TilemapCollider2D` component (existing)
 

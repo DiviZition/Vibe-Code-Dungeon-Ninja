@@ -2,7 +2,7 @@
   "mcpServers": {
     "unitycli": {
       "command": "C:/Users/DiviZition Limited/AppData/Local/Unity/bin/unity.exe",
-      "args": ["mcp", "--project-path", "X:/Workspace/Projects/OwnProjectsVibe-Code-Dungeon-Ninja"],
+      "args": ["mcp", "--project-path", "X:/Workspace/Projects/OwnProjects/Vibe-Code-Dungeon-Ninja"],
       "env": { "NO_PROXY": "*", "UNITY_NO_BANNER": "1" }
     }
   }

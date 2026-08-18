@@ -1,3 +1,4 @@
+using Core;
 using R3;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using UnityEngine.Tilemaps;
 
 namespace Dungeon
 {
-    public class DungeonVisualizer : MonoBehaviour
+    public class DungeonVisualizer : MonoBehaviour, IView<IDungeonModel>
     {
         [Header("Tilemaps")]
         [SerializeField] private Tilemap _floorTilemap;
@@ -17,12 +18,22 @@ namespace Dungeon
         [SerializeField] private Tile _wallTile;
         [SerializeField] private Tile _doorTile;
 
-        private DungeonData _data;
+        private IDungeonModel _model;
+        private IDisposable _modelEvents;
         private IDisposable _corridorEvents;
+
+        public void Init(IDungeonModel model)
+        {
+            _model = model;
+            _modelEvents?.Dispose();
+            _modelEvents = _model.OnGenerated.Subscribe(Visualize);
+
+            if (_model.Data != null)
+                Visualize(_model.Data);
+        }
 
         public void Visualize(DungeonData data)
         {
-            _data = data;
             ClearAll();
 
             if (data == null || data.Rooms == null || data.Corridors == null)
@@ -152,6 +163,7 @@ namespace Dungeon
         private void OnDestroy()
         {
             _corridorEvents?.Dispose();
+            _modelEvents?.Dispose();
         }
     }
 }

@@ -1,15 +1,13 @@
 using System;
+using Core;
 using DG.Tweening;
 using R3;
-using Sirenix.OdinInspector;
-using Sirenix.Serialization;
 using UnityEngine;
 
-public class DamageableVisual : SerializedMonoBehaviour
+public class DamageableVisual : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private SpriteRenderer _spriteRenderer;
-    [OdinSerialize] private IDamageable _damageable;
 
     [Header("Hit Settings")]
     [SerializeField] private Color _hitColor = Color.white;
@@ -22,19 +20,24 @@ public class DamageableVisual : SerializedMonoBehaviour
     private Color _originalColor;
     private IDisposable _subscriptions;
 
-    void Start()
+    private void Awake()
     {
         _originalColor = _spriteRenderer.color;
+    }
+
+    public void Init(IDamageable damageable)
+    {
+        _subscriptions?.Dispose();
+
         var d = Disposable.CreateBuilder();
 
-        _damageable.OnDamaged
+        damageable.OnDamaged
             .Subscribe(_ => PlayHitEffect())
             .AddTo(ref d);
 
-        _damageable.OnDeath
+        damageable.OnDeath
             .Subscribe(_ => PlayDeathEffect())
             .AddTo(ref d);
-
 
         _subscriptions = d.Build();
     }

@@ -7,7 +7,7 @@ using Zenject;
 
 namespace TimeControll
 {
-    public class TimeController : ITickable, IDisposable
+    public class TimeController : ITimeController, ITickable, IDisposable
     {
         [SerializeField] private float _defaultTimeChangeDuration;
         private CancellationTokenSource _changeTimeSpeedCancelToken;

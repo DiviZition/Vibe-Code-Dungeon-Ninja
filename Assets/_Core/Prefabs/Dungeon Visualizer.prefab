@@ -413,7 +413,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ec2b219fc8d50b940bf4e15656af25ea, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Dungeon.DungeonVisualizer
+  m_EditorClassIdentifier: Core::Dungeon.DungeonVisualizer
   _floorTilemap: {fileID: 8312460705158626062}
   _wallTilemap: {fileID: 349059973443224525}
   _floorTile: {fileID: 11400000, guid: df6aa9a21a7dd7949a3322f3d12225b8, type: 2}
